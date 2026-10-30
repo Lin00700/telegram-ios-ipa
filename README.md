@@ -1,16 +1,16 @@
 # Unofficial iOS Chat — build scaffold
 
-This private repository is a scaffold for an **unofficial** iOS messaging client based on the official [TelegramMessenger/Telegram-iOS](https://github.com/TelegramMessenger/Telegram-iOS) source. It does not contain a copy of Telegram's source tree; the prepared workflow template fetches upstream at a recorded ref and includes its submodules. GitHub has not yet accepted the template under `.github/workflows` because the current connection lacks workflow-file write permission.
+This private repository is a scaffold for an **unofficial** iOS messaging client based on the official [TelegramMessenger/Telegram-iOS](https://github.com/TelegramMessenger/Telegram-iOS) source. It does not contain a copy of Telegram's source tree; the Actions workflow fetches upstream at a recorded ref and includes its submodules.
 
 The app must not be presented as the official Telegram app and must not use Telegram's standard paper-plane logo. The build scaffold replaces the default app icon with an original warm-ivory / brick-red chat mark and uses the display name `Unofficial Chat` by default. The visual direction is inspired by the supplied CF 助手 screenshot: warm neutral surfaces, restrained red accents, rounded cards and clear dark typography, while retaining Telegram's existing messaging UI and behavior. See [`docs/VISUAL_STYLE.md`](docs/VISUAL_STYLE.md).
 
 ## Current state
 
-The repository contains the original icon asset, build/package scripts, a ready-to-activate Actions workflow template at [`docs/build-unsigned-ipa.yml`](docs/build-unsigned-ipa.yml), and an AI-auto-reply safety/design specification. **The workflow is not active yet; the runtime UI restyling and AI provider/chat-management code have not yet been merged into Telegram's source or build-verified.** No messages are sent to any AI service by this scaffold. The AI behavior and its required fail-closed consent rules are described in [`docs/AI_AUTOREPLY.md`](docs/AI_AUTOREPLY.md).
+The repository contains the active Actions workflow, original icon asset, build/package scripts and an AI-auto-reply safety/design specification. **The runtime UI restyling and AI provider/chat-management code have not yet been merged into Telegram's source or build-verified.** No messages are sent to any AI service by this scaffold. The AI behavior and its required fail-closed consent rules are described in [`docs/AI_AUTOREPLY.md`](docs/AI_AUTOREPLY.md).
 
 ## Build an unsigned device IPA
 
-Once activated, the workflow is manually triggered from **Actions → Build unsigned IPA → Run workflow**. It checks out the official source recursively, selects the Xcode version declared by upstream `versions.json`, creates the configuration file only in the runner's temporary directory, and builds `release_arm64`. The upstream Bazel rules support a no-provisioning/no-signing device build, but the current upstream `Make.py build` CLI does not expose that flag. The workflow applies a small deterministic patch to the temporary checkout of `Make.py` so it can pass `--disableProvisioningProfiles`; no patch is committed to or sent upstream. It then strips/validates any remaining signatures or profiles and uploads an `.ipa` artifact. It does not import any Apple signing certificate or provisioning profile, and it never asks for or stores the user's Apple signing certificate.
+The workflow is manually triggered from **Actions → Build unsigned IPA → Run workflow**. It checks out the official source recursively, selects the Xcode version declared by upstream `versions.json`, creates the configuration file only in the runner's temporary directory, and builds `release_arm64`. The upstream Bazel rules support a no-provisioning/no-signing device build, but the current upstream `Make.py build` CLI does not expose that flag. The workflow applies a small deterministic patch to the temporary checkout of `Make.py` so it can pass `--disableProvisioningProfiles`; no patch is committed to or sent upstream. It then strips/validates any remaining signatures or profiles and uploads an `.ipa` artifact. It does not import any Apple signing certificate or provisioning profile, and it never asks for or stores the user's Apple signing certificate.
 
 Before a real build, add these GitHub Actions **repository secrets** (not repository files):
 
@@ -21,7 +21,7 @@ Telegram's official instructions say to obtain these at [my.telegram.org → API
 
 The workflow inputs `app_display_name` and `app_bundle_id` are for the non-official app identity. Use a unique reverse-DNS bundle ID that you control before signing. The default `com.lin00700.unofficialchat` is a suggested personal identifier; replace it if you do not control or want to use that identifier.
 
-The workflow template has not yet been activated or run on a GitHub-hosted macOS runner, so there is no IPA yet. GitHub rejected the workflow-path push because the current connection lacks the required workflow-file permission. After activation, verify the artifact with the selected re-signing tool before installation; it will have no Apple team identity, provisioning profile or user certificate and cannot be installed until signed by the user.
+The no-profile device build and IPA post-processing have not yet been run on a GitHub-hosted macOS runner, so the first artifact still needs verification. The resulting IPA will have no Apple team identity, provisioning profile or user certificate and cannot be installed until signed by the user.
 
 ## AI assistant configuration needed
 
