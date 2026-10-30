@@ -122,6 +122,72 @@ public final class CueLocalTranslationService {
     private init() {
     }
 
+    private func translateLanguage(for languageTag: String) -> TranslateLanguage? {
+        let code = languageTag.split(separator: "-", maxSplits: 1).first.map { String($0).lowercased() } ?? ""
+        switch code {
+        case "af": return .afrikaans
+        case "ar": return .arabic
+        case "be": return .belarusian
+        case "bg": return .bulgarian
+        case "bn": return .bengali
+        case "ca": return .catalan
+        case "cs": return .czech
+        case "cy": return .welsh
+        case "da": return .danish
+        case "de": return .german
+        case "el": return .greek
+        case "en": return .english
+        case "eo": return .esperanto
+        case "es": return .spanish
+        case "et": return .estonian
+        case "fa": return .persian
+        case "fi": return .finnish
+        case "fr": return .french
+        case "ga": return .irish
+        case "gl": return .galician
+        case "gu": return .gujarati
+        case "he", "iw": return .hebrew
+        case "hi": return .hindi
+        case "hr": return .croatian
+        case "ht": return .haitianCreole
+        case "hu": return .hungarian
+        case "id": return .indonesian
+        case "is": return .icelandic
+        case "it": return .italian
+        case "ja": return .japanese
+        case "ka": return .georgian
+        case "kn": return .kannada
+        case "ko": return .korean
+        case "lt": return .lithuanian
+        case "lv": return .latvian
+        case "mk": return .macedonian
+        case "mr": return .marathi
+        case "ms": return .malay
+        case "mt": return .maltese
+        case "nl": return .dutch
+        case "no", "nb", "nn": return .norwegian
+        case "pl": return .polish
+        case "pt": return .portuguese
+        case "ro": return .romanian
+        case "ru": return .russian
+        case "sk": return .slovak
+        case "sl": return .slovenian
+        case "sq": return .albanian
+        case "sv": return .swedish
+        case "sw": return .swahili
+        case "ta": return .tamil
+        case "te": return .telugu
+        case "th": return .thai
+        case "tl", "fil": return .tagalog
+        case "tr": return .turkish
+        case "uk": return .ukrainian
+        case "ur": return .urdu
+        case "vi": return .vietnamese
+        case "zh": return .chinese
+        default: return nil
+        }
+    }
+
     public func translateToSimplifiedChinese(_ text: String, completion: @escaping (String?) -> Void) {
         let input = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !input.isEmpty, input.count <= 4096 else {
@@ -144,7 +210,7 @@ public final class CueLocalTranslationService {
             return
         }
 
-        guard let sourceLanguage = TranslateLanguage.fromLanguageTag(detectedLanguage) else {
+        guard let sourceLanguage = self.translateLanguage(for: detectedLanguage) else {
             completion(nil)
             return
         }
