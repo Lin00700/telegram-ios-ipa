@@ -36,7 +36,7 @@ private func cueSaveGlobalWallpaperAsset(_ asset: PHAsset, completion: @escaping
     options.version = .original
     options.deliveryMode = .highQualityFormat
     options.isNetworkAccessAllowed = true
-    PHImageManager.default().requestImageData(for: asset, options: options) { data, _, _, _ in
+    PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, _, _, _ in
         guard let data, data.count <= 32 * 1024 * 1024,
               let source = CGImageSourceCreateWithData(data as CFData, nil),
               CGImageSourceGetCount(source) > 0 else {
@@ -148,7 +148,7 @@ private func decodeCueGlobalWallpaper(path: String) -> UIImage? {
         let cgImage = CGImageSourceCreateThumbnailAtIndex(source, index, thumbnailOptions)
             ?? CGImageSourceCreateImageAtIndex(source, index, nil)
         if let cgImage {
-            frames.append(UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up))
+            frames.append(UIImage(cgImage: cgImage, scale: 1.0, orientation: .up))
             let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
             let gif = properties?[kCGImagePropertyGIFDictionary] as? [CFString: Any]
             let rawDelay = (gif?[kCGImagePropertyGIFUnclampedDelayTime] as? NSNumber)?.doubleValue
@@ -224,14 +224,14 @@ def patch_wallpaper_node(root: Path) -> None:
     text = replace_exact(
         text,
         "    private var wallpaper: TelegramWallpaper?\n",
-        "    private var wallpaper: TelegramWallpaper?\n\n    override var frame: CGRect {\n        didSet {\n            if oldValue.size != self.bounds.size {\n                self.contentNode.frame = self.bounds\n                self.cueGlobalWallpaperNode.frame = self.bounds\n            }\n        }\n    }\n",
+        "    private var wallpaper: TelegramWallpaper?\n\n    public override var frame: CGRect {\n        didSet {\n            if oldValue.size != self.bounds.size {\n                self.contentNode.frame = self.bounds\n                self.cueGlobalWallpaperNode.frame = self.bounds\n            }\n        }\n    }\n",
         1,
         "background view frame update",
     )
     text = replace_exact(
         text,
         "        self.contentNode = ASDisplayNode()\n        self.contentNode.contentMode = self.imageContentMode\n",
-        "        self.cueGlobalWallpaperNode = ASDisplayNode(viewBlock: {\n            let imageView = UIImageView()\n            imageView.contentMode = .scaleAspectFill\n            imageView.clipsToBounds = true\n            imageView.isUserInteractionEnabled = false\n            return imageView\n        }, didLoad: nil)\n        self.cueGlobalWallpaperNode.isUserInteractionEnabled = false\n        self.cueGlobalWallpaperNode.isHidden = true\n\n        self.contentNode = ASDisplayNode()\n        self.contentNode.contentMode = self.imageContentMode\n",
+        "        self.cueGlobalWallpaperNode = ASDisplayNode(viewBlock: {\n            let imageView = UIImageView()\n            imageView.contentMode = .scaleAspectFit\n            imageView.clipsToBounds = true\n            imageView.isUserInteractionEnabled = false\n            return imageView\n        }, didLoad: nil)\n        self.cueGlobalWallpaperNode.isUserInteractionEnabled = false\n        self.cueGlobalWallpaperNode.isHidden = true\n\n        self.contentNode = ASDisplayNode()\n        self.contentNode.contentMode = self.imageContentMode\n",
         1,
         "animated image view construction",
     )
@@ -299,6 +299,7 @@ def patch_wallpaper_node(root: Path) -> None:
     custom_background_branch = '''            } else {
                 if let globalImage = cueGlobalImage {
                     self.contentNode.backgroundColor = .clear
+                    self.contentNode.contentMode = .scaleAspectFit
                     if globalImage.images != nil {
                         self.contentNode.contents = nil
                         if let imageView = self.cueGlobalWallpaperNode.view as? UIImageView {
@@ -321,6 +322,7 @@ def patch_wallpaper_node(root: Path) -> None:
                         self._isReady.set(true)
                     }
                 } else {
+                    self.contentNode.contentMode = self.imageContentMode
                     self.cueGlobalWallpaperNode.isHidden = true
                     if let imageView = self.cueGlobalWallpaperNode.view as? UIImageView {
                         imageView.stopAnimating()
@@ -340,7 +342,7 @@ def patch_wallpaper_node(root: Path) -> None:
     text = text.replace("// CUE_GLOBAL_WALLPAPER_NODE_V1", "")
     text = text.replace(
         "public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgroundNode {",
-        "// CUE_GLOBAL_WALLPAPER_NODE_V1: app-wide local image/GIF wallpapers use an aspect-fill UIImageView.\npublic final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgroundNode {",
+        "// CUE_GLOBAL_WALLPAPER_NODE_V1: app-wide local image/GIF wallpapers use aspect-fit rendering.\npublic final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgroundNode {",
         1,
     )
     write_once(path, text)

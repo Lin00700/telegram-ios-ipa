@@ -27,14 +27,22 @@ sudo ditto "$UPSTREAM" "$CANONICAL"
 UPSTREAM="$CANONICAL"
 APP_ROOT="$UPSTREAM/Telegram/Telegram-iOS"
 
+python3 "$ROOT/scripts/generate_opencc_t2s_ext.py" \
+  "$ROOT/assets/opencc/TSCharacters.txt" "$RUNNER_TEMP/TSCharactersExt.generated.txt"
+cmp -s "$RUNNER_TEMP/TSCharactersExt.generated.txt" "$ROOT/assets/opencc/TSCharactersExt.txt"
+
 mkdir -p "$APP_ROOT/Resources"
 cp "$ROOT/assets/cf-inkwash-global.png" "$APP_ROOT/Resources/ChatWallpaperBuiltin0.png"
+bash "$ROOT/scripts/build_mlkit_vendor.sh" "$UPSTREAM"
+python3 "$ROOT/scripts/apply_runtime_features.py" --upstream "$UPSTREAM" --repo-root "$ROOT"
 python3 "$ROOT/scripts/apply_custom_client_ui.py" --upstream "$UPSTREAM"
 python3 "$ROOT/scripts/apply_global_wallpaper.py" --upstream "$UPSTREAM"
 
 python3 "$ROOT/scripts/apply_branding.py" --app-root "$APP_ROOT" --display-name "$APP_DISPLAY_NAME" --icon "$ROOT/assets/unofficial-chat-icon.png"
 python3 "$ROOT/scripts/generate_build_config.py" \
   --template "$UPSTREAM/build-system/template_minimal_development_configuration.json" \
+  --upstream-root "$UPSTREAM" \
+  --minimum-ios-version "15.5" \
   --output "$CONFIG"
 python3 "$ROOT/scripts/enable_unsigned_device_build.py" \
   --make-script "$UPSTREAM/build-system/Make/Make.py" \
@@ -42,6 +50,9 @@ python3 "$ROOT/scripts/enable_unsigned_device_build.py" \
 
 rm -rf "$BUILD_ARTIFACTS" "$OUTPUT"
 mkdir -p "$BUILD_ARTIFACTS" "$OUTPUT"
+if [[ -f "$RUNNER_TEMP/MLKit-Podfile.lock" ]]; then
+  cp "$RUNNER_TEMP/MLKit-Podfile.lock" "$OUTPUT/MLKit-Podfile.lock"
+fi
 
 cd "$UPSTREAM"
 python3 -u build-system/Make/Make.py \

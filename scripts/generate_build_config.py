@@ -17,10 +17,32 @@ def fail(message: str) -> None:
     raise SystemExit(f"build-config error: {message}")
 
 
+def update_minimum_ios_version(upstream_root: Path, version: str) -> None:
+    build_file = upstream_root / "Telegram/BUILD"
+    if not build_file.is_file():
+        fail(f"upstream Bazel app target not found: {build_file}")
+    text = build_file.read_text(encoding="utf-8")
+    old = 'minimum_os_version = "15.0"'
+    new = f'minimum_os_version = "{version}"'
+    if text.count(old) == 1:
+        text = text.replace(old, new, 1)
+    elif text.count(new) != 1:
+        fail("expected exactly one shared minimum_os_version setting in Telegram/BUILD")
+    escaped_version = version.replace(".", "\\\\.")
+    extension_pattern = re.compile(r'(<<<MIN_OS_VERSION>>>/)\d+\\\\\.\d+(?=/g)')
+    text, extension_count = extension_pattern.subn(lambda match: match.group(1) + escaped_version, text)
+    if extension_count != 4:
+        fail(f"expected exactly four extension MinimumOSVersion postprocessors, found {extension_count}")
+    build_file.write_text(text, encoding="utf-8")
+    print(f"Set Telegram app and shared iOS extension deployment target to iOS {version}.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--template", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--upstream-root", required=True, type=Path)
+    parser.add_argument("--minimum-ios-version", default="15.5")
     args = parser.parse_args()
 
     api_id = os.environ.get("TG_API_ID", "").strip()
@@ -34,6 +56,9 @@ def main() -> None:
         fail("APP_BUNDLE_ID must be a reverse-DNS identifier using letters, numbers, dots or hyphens")
     if not args.template.is_file():
         fail(f"upstream template not found: {args.template}")
+    if not re.fullmatch(r"\d+\.\d+", args.minimum_ios_version):
+        fail("minimum iOS version must use a dotted numeric version such as 15.5")
+    update_minimum_ios_version(args.upstream_root, args.minimum_ios_version)
 
     try:
         config = json.loads(args.template.read_text(encoding="utf-8"))

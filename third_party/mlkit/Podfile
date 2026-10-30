@@ -1,0 +1,11 @@
+source 'https://cdn.cocoapods.org/'
+
+platform :ios, '15.5'
+install! 'cocoapods', :integrate_targets => false
+
+# Official on-device ML Kit Translate SDK. Translation text remains on-device;
+# no Google Cloud Translation or paid API is used by this dependency.
+target 'CueMLKit' do
+  use_frameworks! :linkage => :static
+  pod 'GoogleMLKit/Translate', '9.0.0'
+end

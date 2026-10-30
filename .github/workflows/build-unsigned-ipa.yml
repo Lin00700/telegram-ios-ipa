@@ -103,6 +103,15 @@ jobs:
           set -euo pipefail
           bash scripts/build_from_upstream.sh
 
+      - name: Upload ML Kit dependency lock for diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlkit-dependencies-${{ github.run_number }}
+          path: ${{ runner.temp }}/MLKit-Podfile.lock
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload user-signable IPA
         uses: actions/upload-artifact@v4
         with:
@@ -110,6 +119,7 @@ jobs:
           path: |
             artifacts/UnofficialChat-unsigned.ipa
             artifacts/unsigned-ipa-validation.json
+            artifacts/MLKit-Podfile.lock
           if-no-files-found: error
           retention-days: 7
 
