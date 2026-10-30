@@ -98,7 +98,7 @@ private func cueSaveGlobalWallpaperAsset(_ asset: PHAsset, completion: @escaping
                     }
                     if saved {
                         legacyController.dismiss()
-                        controller.dismiss(forceAway: true)
+                        controller.dismiss()
                     }
                 }
             }
