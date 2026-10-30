@@ -137,7 +137,7 @@ public final class CueLocalTranslationService {
         case "de": return .german
         case "el": return .greek
         case "en": return .english
-        case "eo": return .esperanto
+        case "eo": return nil // MLKitTranslate 8.0.0 exposes no Swift enum member for Esperanto.
         case "es": return .spanish
         case "et": return .estonian
         case "fa": return .persian
