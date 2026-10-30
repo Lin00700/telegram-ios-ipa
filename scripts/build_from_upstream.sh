@@ -55,3 +55,8 @@ python3 "$ROOT/scripts/package_unsigned_ipa.py" \
   --base-bundle-id "$APP_BUNDLE_ID" \
   --bundle-id "$APP_BUNDLE_ID" \
   --display-name "$APP_DISPLAY_NAME"
+
+python3 "$ROOT/scripts/validate_unsigned_ipa.py" \
+  --ipa "$OUTPUT/UnofficialChat-unsigned.ipa" \
+  --bundle-id "$APP_BUNDLE_ID" \
+  --report "$OUTPUT/unsigned-ipa-validation.json"

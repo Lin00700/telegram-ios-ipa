@@ -28,6 +28,14 @@ jobs:
     outputs:
       credentials_ready: ${{ steps.check.outputs.credentials_ready }}
     steps:
+      - name: Checkout packaging tests
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Test unsigned IPA validation and extraction
+        run: python3 -m unittest discover -s tests -v
+
       - id: check
         name: Check Telegram API credentials are configured
         env:
@@ -99,7 +107,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unofficial-ios-chat-unsigned-${{ github.run_number }}
-          path: artifacts/UnofficialChat-unsigned.ipa
+          path: |
+            artifacts/UnofficialChat-unsigned.ipa
+            artifacts/unsigned-ipa-validation.json
           if-no-files-found: error
           retention-days: 7
 

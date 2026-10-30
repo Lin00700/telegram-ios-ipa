@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Strip upstream fake signing material and package an IPA for user signing."""
+"""Preserve bundle structure and package a verified unsigned IPA for user signing."""
 import argparse
 import os
 import plistlib
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 import zipfile
@@ -56,11 +57,33 @@ def update_info_plists(payload: Path, base_bundle_id: str, new_bundle_id: str, d
 
 def safe_extract(archive: zipfile.ZipFile, destination: Path) -> None:
     base = destination.resolve()
+    seen = set()
+    directories = []
     for member in archive.infolist():
+        if member.filename in seen:
+            raise SystemExit("input IPA contains duplicate archive paths")
+        seen.add(member.filename)
         target = (destination / member.filename).resolve()
         if target != base and base not in target.parents:
             raise SystemExit("input IPA contains an unsafe archive path")
-        archive.extract(member, destination)
+        mode = member.external_attr >> 16
+        if member.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            directories.append((target, stat.S_IMODE(mode) or 0o755))
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if stat.S_ISLNK(mode):
+            link = archive.read(member).decode('utf-8')
+            resolved_link = (target.parent / link).resolve()
+            if os.path.isabs(link) or (resolved_link != base and base not in resolved_link.parents):
+                raise SystemExit("input IPA contains an unsafe symlink")
+            target.symlink_to(link)
+        else:
+            with archive.open(member) as source, target.open('wb') as output:
+                shutil.copyfileobj(source, output)
+            target.chmod(stat.S_IMODE(mode) or 0o644)
+    for target, mode in reversed(directories):
+        target.chmod(mode)
 
 
 def main() -> None:
@@ -78,7 +101,7 @@ def main() -> None:
     if not SAFE_DISPLAY_NAME.fullmatch(args.display_name):
         raise SystemExit("display name must be 1-30 simple Latin letters, numbers, spaces, dots, underscores or hyphens")
     if not args.base_bundle_id or "." not in args.base_bundle_id:
-        raise SystemExit("invalid base bundle ID extracted from the upstream fake profile")
+        raise SystemExit("invalid configured base bundle ID")
 
     args.output_ipa.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="cue-unsigned-ipa-") as temp_name:
@@ -92,7 +115,7 @@ def main() -> None:
 
         changed = update_info_plists(payload, args.base_bundle_id, args.bundle_id, args.display_name)
         if changed == 0:
-            raise SystemExit("no bundle IDs matched the fake profile's base app ID; refusing an ambiguous package")
+            raise SystemExit("no bundle IDs matched the configured base app ID; refusing an ambiguous package")
 
         # Remove nested code signatures deepest-first, then the containing app
         # signature. Do not keep any provisioning profile in a user-signed IPA.
