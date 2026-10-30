@@ -1,0 +1,21 @@
+# Runner/local build artifacts
+artifacts/
+build/
+upstream/
+*.ipa
+*.mobileprovision
+*.p12
+*.p8
+
+# Temporary Telegram configuration and generated build inputs
+telegram-build-config*.json
+configuration.json
+build-input/
+.cache/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+
+# macOS metadata
+.DS_Store

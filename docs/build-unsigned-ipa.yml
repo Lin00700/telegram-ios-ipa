@@ -1,0 +1,119 @@
+name: Build unsigned IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: TelegramMessenger/Telegram-iOS ref (pinned for traceability; change deliberately when updating upstream)
+        required: true
+        default: fb0e62ba8a147f0821da6aa63c09da7d79a10111
+        type: string
+      app_display_name:
+        description: Non-official app display name
+        required: true
+        default: Unofficial Chat
+        type: string
+      app_bundle_id:
+        description: Unique reverse-DNS bundle ID you control; update it before signing if needed
+        required: true
+        default: com.lin00700.unofficialchat
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      credentials_ready: ${{ steps.check.outputs.credentials_ready }}
+    steps:
+      - id: check
+        name: Check Telegram API credentials are configured
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+        shell: bash
+        run: |
+          if [[ -n "$TG_API_ID" && -n "$TG_API_HASH" ]]; then
+            echo "credentials_ready=true" >> "$GITHUB_OUTPUT"
+            echo "Telegram API credentials are configured." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "credentials_ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Build not started"
+              echo "Add the repository Actions secrets \`TG_API_ID\` and \`TG_API_HASH\`, then rerun this workflow. No credential values were printed or stored in this repository."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  build:
+    needs: preflight
+    if: needs.preflight.outputs.credentials_ready == 'true'
+    runs-on: xcode-27
+    timeout-minutes: 360
+    steps:
+      - name: Checkout private build scaffold
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout official Telegram iOS source and all submodules
+        uses: actions/checkout@v4
+        with:
+          repository: TelegramMessenger/Telegram-iOS
+          ref: ${{ inputs.upstream_ref }}
+          path: upstream
+          submodules: recursive
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Select upstream-required Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          XCODE_VERSION="$(python3 -c 'import json; print(json.load(open("upstream/versions.json"))["xcode"])')"
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "Required Xcode $XCODE_VERSION is not installed on the xcode-27 runner." >&2
+            xcodebuild -version || true
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+          echo "UPSTREAM_COMMIT=$(git -C upstream rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Build and package unsigned IPA
+        shell: bash
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
+          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          bash scripts/build_from_upstream.sh
+
+      - name: Upload user-signable IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: unofficial-ios-chat-unsigned-${{ github.run_number }}
+          path: artifacts/UnofficialChat-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarize build
+        if: success()
+        shell: bash
+        env:
+          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
+        run: |
+          {
+            echo "## Unsigned IPA ready"
+            echo "- Upstream commit: \`$UPSTREAM_COMMIT\`"
+            echo "- App: \`$APP_DISPLAY_NAME\` (\`$APP_BUNDLE_ID\`)"
+            echo "- Built for arm64 with provisioning profiles and code signing disabled."
+            echo "- No Apple signing certificate was imported; sign the artifact with your own identity before installing."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Unofficial chat icon">
+  <rect width="1024" height="1024" rx="220" fill="#F6F3E9"/>
+  <rect x="76" y="76" width="872" height="872" rx="210" fill="#FBF9F1" stroke="#E4DFD2" stroke-width="10"/>
+  <path d="M300 260h424c75 0 136 61 136 136v202c0 75-61 136-136 136H505l-128 99c-18 14-44 1-43-22l8-77c-71-18-121-82-121-159V396c0-75 61-136 136-136Z" fill="#F4F0E6" stroke="#AD4039" stroke-width="46" stroke-linejoin="round"/>
+  <circle cx="398" cy="499" r="27" fill="#342E27"/>
+  <circle cx="512" cy="499" r="27" fill="#342E27"/>
+  <circle cx="626" cy="499" r="27" fill="#342E27"/>
+  <path d="M690 220c32-42 87-42 119 0" fill="none" stroke="#AD4039" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="750" cy="182" r="13" fill="#AD4039"/>
+</svg>
