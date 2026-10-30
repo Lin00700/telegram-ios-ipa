@@ -9,19 +9,21 @@
 
 ## 每个聊天可随时单独开关
 
-在当前聊天页的会话菜单/聊天信息中提供一个明确的“自动翻译新消息”开关；不提供默认开启的全局开关。群组论坛主题按 `peerId + threadId` 分开保存。开关状态按 `accountId + peerId + optional threadId` 持久化，应用重启后保持原值。
+在当前聊天页右上角的更多菜单（`⋯`）中提供明确的“自动翻译新消息”开关；不提供默认开启的全局开关。群组论坛主题按 `peerId + threadId` 分开保存。状态按 `accountId + peerId + optional threadId` 持久化，应用重启后保持原值。
+
+固定 Telegram 上游的更多菜单入口位于 [`ChatController.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Sources/ChatController.swift) 的 `moreBarButton.contextAction`。现有委托只传 `peerId`；为支持论坛主题的独立开关，新增动作必须由当前 `ChatController` 保留 `threadId`，或扩展委托传递完整会话位置，不能丢掉主题 ID。
 
 - **OFF（默认）**：不翻译新消息、不处理待翻译任务，也不为该聊天启动模型下载。
 - **ON**：只翻译用户打开开关后收到的新入站文字消息；不回溯补译打开前收到的历史消息。原文始终保留，译文显示在原消息下方。
 - 关闭时立即停止后续自动翻译；取消尚未开始的任务，无法取消的在途结果丢弃。此前已显示的译文可保留，但不再更新或翻译新消息。
-- 首次开启时先说明“本机处理，聊天正文不会上传；首次下载模型需要联网”，并取得该会话的本地翻译授权；关闭翻译不影响任何 AI 回复设置或已显示的 AI 消息。
+- 首次开启时先说明“本机处理，聊天正文不会上传；首次下载模型需要联网”，并取得该会话的本地翻译授权。关闭翻译不影响任何 AI 回复设置或已显示的 AI 消息。
 - 此开关与 AI 自动回复开关完全分开：翻译开/关不改变 AI 自动回复；AI 自动回复开/关也不改变翻译。
 
 ## 已选择：Google ML Kit 设备端翻译
 
 翻译采用 Google ML Kit Translation 的设备端 API，不使用 Google Cloud Translation API，不启用 Cloud 结算，也不把聊天正文上传给 Google Cloud。Google 官方说明，ML Kit 在设备本地处理文本；首次使用时需下载对应语言模型（约 30 MB），下载后可离线翻译。首次下载模型会连接 Google，但模型下载不包含聊天正文。模型下载默认走 Wi-Fi，用户明确允许后才可使用蜂窝网络；模型尚未就绪时不发送翻译请求。
 
-此功能仍逐会话默认关闭，并需要用户在该会话确认开启；确认页说明“由设备端 Google ML Kit 处理，聊天文本留在本机；首次下载语言模型需联网”。这是一项本地翻译授权，与 AI profile、AI 自动回复、其 provider/API key 和对应授权完全分开。翻译不使用 AI 自动回复所选的 provider，也不依赖用户配置 AI API key。
+此功能逐会话默认关闭，并需要用户在该会话确认开启；确认页说明“由设备端 Google ML Kit 处理，聊天文本留在本机；首次下载语言模型需联网”。这是一项本地翻译授权，与 AI profile、AI 自动回复、其 provider/API key 和对应授权完全分开。翻译不使用 AI 自动回复所选的 provider，也不依赖用户配置 AI API key。
 
 关闭该会话翻译后，停止后续翻译；删除模型只影响本机缓存，不更改 Telegram 消息。不得自动切换到 Cloud Translation 或任何其他远端 provider。若设备端结果不满足简体中文要求，应停止/标记该会话翻译不可用并询问用户，不得悄悄把消息发到云端。
 
@@ -46,6 +48,14 @@ OpenCC 的 `t2s.json` 仅引用四个运行时字典：`CJK_Compatibility_Ideogr
 推荐实现方式是固定 OpenCC 1.4.2 源码/commit，在 Telegram Bazel 图中建立只含转换器与 `t2s` 资源的窄化 target；用 Objective-C++ 小封装把 Swift 消息译文送入 C++ `SimpleConverter`，再把结果返回消息显示层。OpenCC 的 Bazel `MODULE.bazel` 包含不少 Python、Node、测试和工具链依赖；直接照搬整个模块会比功能所需更重，宜只接入运行时代码和必要的 C++ 依赖，并固定其版本/许可证。
 
 集成后必须验证设备与模拟器架构、字典资源定位、线程安全/并发、内存和最终 IPA 资源体积。当前没有实际添加 OpenCC、创建 Bazel target 或运行 iOS 构建，因此目前只能说“技术上可行、应采用窄化 target”，不能称已集成、已构建或已测量最终体积。
+
+## 固定上游的实现点与必须避开的路径
+
+当前仓库不是 Telegram 应用源码副本；构建脚本只在 CI 临时 checkout 上游、改品牌并补上 unsigned build 参数，尚无功能 overlay。实现运行时开关，需要再增加受版本固定的源码 overlay，并在 macOS/Xcode 构建中验证。
+
+上游已有的 `ChatTranslationState` 虽按 peer/thread 缓存一些状态，但它还受 Telegram 全局语言设置和翻译资格逻辑约束，不能替代本功能的“明确选择、默认 OFF”本地设置。频道的 `_internal_toggleAutoTranslation` 会调用 Telegram 服务器 API，也不能用于这里。应另存 `(accountId, peerId, optional threadId) -> autoTranslateIncoming`；没有记录时视为 OFF，并保存显式 OFF。可以从 [`ChatTranslation.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TranslateUI/Sources/ChatTranslation.swift) 学习 peer/thread 键方式，但不能复用其服务端语义。
+
+不应调用 Telegram 的 `messages.translateText` 翻译路径：它会请求 Telegram 服务，且现有 [`ChatMessageTextBubbleContentNode.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift) 展示路径会以译文替换原文。现有 [`ChatHistoryListNode.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Sources/ChatHistoryListNode.swift) 还会扫描可见历史消息来补译，也不满足只处理开关开启后新消息的要求。应只监听开关开启期间新插入的入站文字消息，关闭时取消/丢弃待处理结果，并在消息气泡中增加保留原文的次级译文行。
 
 ## 简体输出验收计划
 
@@ -83,7 +93,7 @@ ConversationAISettings (accountId + peerId + optional threadId)
 ## 群组与频道限制
 
 - 群组/论坛主题只处理用户明确开启的会话/主题，按 `peerId + threadId` 区分；绝不读取或上传未选聊天的内容。
-- 频道仅处理当前账号有权查看、且符合 Telegram 频道翻译能力/限制的消息；频道未启用相应翻译能力时不提供自动翻译开关。
+- 频道只处理当前账号有权查看、且用户在本机明确开启的消息；设备端 ML Kit + OpenCC 翻译不依赖 Telegram Premium 或 Telegram 服务器翻译功能。
 - 不调用 Telegram 频道自动翻译设置接口，不修改频道设置、消息、反应或评论，也不代发内容。该功能只在本机显示译文；没有频道管理权限时不展示任何修改频道侧设置的入口。
 
 ## 中文界面与样式
@@ -97,12 +107,12 @@ ConversationAISettings (accountId + peerId + optional threadId)
 3. ML Kit + OpenCC 通过繁简字形、繁体输入、自然度及真实 iOS 架构测试；不通过即标记未完成，不自动调用云端服务。
 4. 聊天正文始终不发往 Google Cloud、Telegram 翻译接口或 AI 回复 provider；模型下载只获取模型文件。
 5. 翻译开关与 AI 自动回复开关、profile 分配和各自授权互不影响。
-6. 频道权限与频道翻译能力受限时不开启；客户端不发送或修改频道内容/设置。
+6. 频道仅在当前账号可见且用户明确开启时本地翻译；不要求 Telegram Premium/服务器翻译，也不发送或修改频道内容/设置。
 7. 依赖与 Bazel 规则通过 Xcode release 构建，确认 iOS deployment target、许可证、资源/隐私清单、模型下载和无签名 IPA 打包均正确。
 
 ## 实施状态
 
-用户已选择 ML Kit 设备端路线；OpenCC `t2s` 是推荐的本地简体字形规范化补充方案，尚待用户后续同意纳入实现。未使用 Cloud Translation API；未启用结算；未要求 API key。ML Kit、OpenCC、逐会话开关、简体输出验收、原文+译文气泡 UI 和 Bazel 依赖均尚未实现/验证，最终 IPA 增量体积也未测量。GitHub Actions workflow/secrets 写权限仍待恢复，目前没有可验证的 IPA。
+用户已选择 ML Kit 设备端路线，并要求增加逐聊天独立开关；OpenCC `t2s` 是推荐的本地简体字形规范化层。当前仓库只有规格与构建脚手架，没有 Telegram 应用源码或功能 overlay；因此运行时开关、翻译路径和原文+译文气泡尚未实现/验证。未使用 Cloud Translation API、未启用结算、未要求翻译 API key。GitHub Actions workflow/secrets 写权限仍待恢复，尚无可验证的 IPA。
 
 ## 来源
 
@@ -117,4 +127,9 @@ ConversationAISettings (accountId + peerId + optional threadId)
 - [OpenCC `.bazelversion`](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/.bazelversion)
 - [Telegram 固定上游 Bazel 版本](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/versions.json)
 - [Google ML Kit 样例 issue：Translate Pod 的 iOS deployment target 记录](https://github.com/googlesamples/mlkit/issues/795)
-- [固定上游：ChatTranslationPanelNode.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift)
+- [固定上游：ChatController.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Sources/ChatController.swift)
+- [固定上游：ChatTranslation.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TranslateUI/Sources/ChatTranslation.swift)
+- [固定上游：ChatHistoryListNode.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Sources/ChatHistoryListNode.swift)
+- [固定上游：ChatMessageTextBubbleContentNode.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift)
+- [固定上游：Translate.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramCore/Sources/TelegramEngine/Messages/Translate.swift)
+- [固定上游：AutoTranslate.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramCore/Sources/TelegramEngine/Peers/AutoTranslate.swift)
