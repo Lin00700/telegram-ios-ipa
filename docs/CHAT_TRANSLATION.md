@@ -15,27 +15,40 @@
 
 关闭该会话翻译后，停止后续翻译；删除模型只影响本机缓存，不更改 Telegram 消息。不得自动切换到 Cloud Translation 或任何其他远端 provider。若设备端结果不满足简体中文要求，应停止/标记该会话翻译不可用并询问用户，不得悄悄把消息发到云端。
 
-## 简体中文输出：必须设备实测
+## 建议本地规范化：ML Kit + OpenCC `t2s`
 
-ML Kit 官方翻译语言表只列通用中文代码 `zh`，不提供单独的 `zh-Hans`/`zh-CN` 目标，也没有保证输出必定使用简体字的文档。因此目前只能确认它支持“中文”，**不能据此宣称已经满足简体中文**。应用界面目标仍显示“简体中文”，但在以下真实 iOS 验收通过之前，不得声称翻译结果已可靠保持简体。
+ML Kit 官方语言表只列通用中文代码 `zh`，没有单独的 `zh-Hans`/`zh-CN` 目标，也未保证结果一定是简体。建议在设备内串接一层 OpenCC：先让 ML Kit 将来文翻译成通用中文，再对译文应用 OpenCC 的 `t2s`（OpenCC 标准繁体 → 简体）字典转换，最后显示规范化译文。原消息不进入转换器、不被改写；即使 ML Kit 对繁体中文输入返回原文，`t2s` 仍可尝试把该文本转成简体。
 
-验收必须在集成后的 iPhone/iOS 模拟器上用合成文本运行 ML Kit（不是把聊天内容发送到 Google Translate 网页或 Cloud API）：
+OpenCC 是确定性的离线词典转换库，支持字词级映射；它只负责繁简字形/词形转换，不会翻译语言、改善 ML Kit 的语义准确度，也不保证将粤语改写成普通话。若 ML Kit 译文意思不通，或 OpenCC 处理后仍有不可接受的繁体/混合字形，不能声称该消息已可靠翻译。始终保留原文供用户判断。
 
-1. 英文句子需覆盖有繁简差异的字词，例如“我在会议后染了头发”“面条有点干”；检查输出使用“会议/后/头发/面条/干”等简体字形，而非“會議/後/頭髮/麵條/乾”。
-2. 用日文、韩文及至少一种常用欧洲语言的合成短句测试目标为 `zh` 时的自然度；ML Kit 的非英语互译会以英语为中转，需人工评估可读性。
-3. 加入繁体中文输入（例如“會議後我去買麵條”），检查目标 `zh` 是否真的转换成简体，而不是原样保留或继续输出繁体。
-4. 使用人工审阅及本地繁简检查表验证字形；对专名、口语、短消息、emoji 与换行做抽样。任何脚本不合格、返回原文或质量不可接受的情况都算未通过；不允许自动回退到云服务。
-5. 在模型未下载、下载失败、离线、蜂窝网络未授权、低内存和应用重启时验证行为；原文始终可读，翻译失败不丢消息、不记录正文。
+### 许可与随包体积
 
-当前工作环境没有 iOS/Xcode 运行环境，GitHub Actions workflow 也尚未获准写入，因此这里不能实际运行上述 ML Kit 输出测试；输出脚本与自然度仍为**未验证**。
+OpenCC 上游版本 1.4.2 以 Apache License 2.0 发布。上游 README 还列出其依赖项目的不同许可，例如 darts-clone 与 marisa-trie 为 BSD、RapidJSON 为 MIT；实际集成时应按最终 Bazel 依赖闭包保留对应许可证/通知文件。私有自用不改变依赖许可要求，若之后分发 IPA 也应保留这些材料。
 
-## Telegram iOS / Bazel 集成评估
+OpenCC 的 `t2s.json` 仅引用四个运行时字典：`CJK_Compatibility_Ideographs.ocd2`、`TSPhrases.ocd2`、`TSCharactersExt.ocd2`、`TSCharacters.ocd2`；其中 `TSCharactersExt` 可由 `TSCharacters.txt` 在构建时生成。对应的三份原始文本输入合计 **152,799 字节（约 153 KB）**，而上游全部 20 份字典文本合计 **1,425,567 字节（约 1.43 MB）**。这是原始字典文本体积，不是编译后的 `.ocd2` 或最终 IPA 增量；后两者尚未测量。
 
-Google 官方 iOS 集成页示例要求 CocoaPods 依赖 `GoogleMLKit/Translate`，并通过 `.xcworkspace` 工作；没有找到 Google 官方 Bazel 接入配方。Telegram iOS 固定上游使用 Make.py/Bazel 构建，因此 ML Kit 不是可直接添加的一条 Bazel 依赖。
+为保持轻量，不应直接使用上游根 `//:opencc_lib` 的默认资源包：它把所有配置及二进制/文本字典列入 `data`。建议建立窄化的 Bazel target，只包含 OpenCC 转换运行时代码、`t2s.json` 及其四个字典资产；避免打包其他地区词典、命令行工具和测试资源。
 
-Bazel 技术上可以导入预编译 Apple Framework；[`rules_apple` 官方文档](https://github.com/bazelbuild/rules_apple/blob/master/doc/frameworks.md)提供静态/动态 framework import 规则。要接入 ML Kit，仍须从 CocoaPods 解析/固定 Translate Pod 的全部二进制传递依赖与资源，选择设备/模拟器架构，创建并维护 Bazel targets，正确打包框架、模型管理所需资源和隐私清单，再跑完整 iOS release 构建。这是可尝试的自定义集成，不是已经确认能工作的官方 Bazel 支持。
+## Bazel 接入可行性
 
-Google ML Kit 样例仓库的 issue 记录 Translate Pod 的最低 iOS 版本曾提升到 iOS 15.5；接入前要核对固定 Telegram 上游的 deployment target 与当前 Podspec，避免无意提高应用最低系统版本。最终需在 CI/Xcode 中验证 arm64 真机与模拟器目标、无签名 IPA 打包、模型下载和翻译；在这之前不宣称已集成或可安装。
+与 ML Kit 的 CocoaPods-only 官方 iOS 接入不同，OpenCC 1.4.2 上游本身提供 `BUILD.bazel`、`MODULE.bazel` 和 C++ library target。上游 `.bazelversion` 为 9.1.1；固定 Telegram 上游的 `versions.json` 记录 Bazel 9.2.0，因此版本号接近，基于 Bazel 接入具有实际可行性，但并不等于已在 Telegram 构建中通过。
+
+推荐实现方式是固定 OpenCC 1.4.2 源码/commit，在 Telegram Bazel 图中建立只含转换器与 `t2s` 资源的窄化 target；用 Objective-C++ 小封装把 Swift 消息译文送入 C++ `SimpleConverter`，再把结果返回消息显示层。OpenCC 的 Bazel `MODULE.bazel` 包含不少 Python、Node、测试和工具链依赖；直接照搬整个模块会比功能所需更重，宜只接入运行时代码和必要的 C++ 依赖，并固定其版本/许可证。
+
+集成后必须验证设备与模拟器架构、字典资源定位、线程安全/并发、内存和最终 IPA 资源体积。当前没有实际添加 OpenCC、创建 Bazel target 或运行 iOS 构建，因此目前只能说“技术上可行、应采用窄化 target”，不能称已集成、已构建或已测量最终体积。
+
+## 简体输出验收计划
+
+实际验收时仅用合成文本，不使用用户聊天内容，也不请求 Cloud Translation：
+
+1. 让 ML Kit 翻译英语短句，再将结果经 OpenCC `t2s` 处理；检查“会议/后/头发/面条/干”等简体字形，而非“會議/後/頭髮/麵條/乾”。
+2. 用繁体中文输入（例如“會議後我去買麵條”）检查最终输出是否变为简体；确认原文仍逐字保留。
+3. 用日文、韩文及至少一种常用欧洲语言的合成短句检查译文意思与可读性。ML Kit 的非英语互译会以英语为中转，需人工评估；OpenCC 不能修复错误翻译。
+4. 抽查专名、口语、emoji、换行、短消息和繁简混合内容；任何不自然/错误内容都由原文兜底。
+5. 测试模型未下载、下载失败、离线、蜂窝网络未授权、低内存及应用重启；原文始终可见，失败不丢消息、不记录正文。模型首下载默认仅 Wi-Fi。
+6. 检查聊天文本不会流向 Google Cloud、Telegram 翻译接口或 AI 回复 provider；关闭单个会话翻译后不再处理后续消息。
+
+当前工作环境没有 iOS/Xcode 运行环境，GitHub Actions workflow 写权限也仍受阻，因此上述 ML Kit + OpenCC 输出和集成均为**未验证**。
 
 ## 与 AI 自动回复彻底分开
 
@@ -44,18 +57,18 @@ Google ML Kit 样例仓库的 issue 记录 Translate Pod 的最低 iOS 版本曾
 ```text
 ConversationTranslationSettings (accountId + peerId + optional threadId)
   autoTranslateIncoming: false
-  targetLanguage: "zh"              // ML Kit 唯一公开的中文代码；UI目标为简体
-  engine: googleMlKitOnDevice
+  mlKitTargetLanguage: "zh"     // ML Kit 通用中文代码
+  localNormalizer: "OpenCC:t2s" // 候选本地规范化层，待集成
   localConsentVersion: none
   displayMode: originalAndTranslation
 
 ConversationAISettings (accountId + peerId + optional threadId)
-  assignedAssistantIds: []           // 可多选
+  assignedAssistantIds: []       // 可多选
   autoReplyEnabled: false
   consentedProviderIds: []
 ```
 
-翻译 profile 不调用 AI 回复 provider；AI 回复 profile 不会触发翻译。无论选中多少 AI 助手，翻译状态仍独立。翻译功能不处理历史记录，只在当前会话开关开启且收到新入站文字时运行，按消息 ID 去重、控制并发并遵守每会话独立状态。
+翻译不调用 AI 回复 provider；AI 回复 profile 不会触发翻译。无论选中多少 AI 助手，翻译状态仍独立。翻译功能不处理历史记录，只在当前会话开关开启且收到新入站文字时运行，按消息 ID 去重、控制并发并遵守每会话独立状态。
 
 ## 群组与频道限制
 
@@ -65,28 +78,33 @@ ConversationAISettings (accountId + peerId + optional threadId)
 
 ## 中文界面与样式
 
-新增控件提供简体中文（`zh-Hans`）文案，例如“自动翻译”“目标语言”“原文”“简体中文译文”“设备端翻译”“模型下载”“撤回授权”。译文位于原文下方，以次级文字色和轻分隔标识，并沿用暖象牙白、砖红状态点和圆角交互。UI 显示“简体中文”是用户目标，不可代替输出验收。
+新增控件提供简体中文（`zh-Hans`）文案，例如“自动翻译”“目标语言”“原文”“简体中文译文”“设备端翻译”“模型下载”“撤回授权”。译文位于原文下方，以次级文字色和轻分隔标识，并沿用暖象牙白、砖红状态点和圆角交互。UI 显示“简体中文”是用户目标，不可代替设备端输出验收。
 
 ## 验收清单
 
 1. 所有会话/主题默认关闭；只有选中的会话在本地确认后开始处理新入站文字。
-2. 设备端模型首次下载后可离线翻译；聊天正文始终不发往 Google Cloud、Telegram 翻译接口或 AI 回复 provider。
-3. 原文与译文同时显示；模型/翻译失败、离线或权限不足时仍保留原文。
-4. ML Kit `zh` 输出通过繁简字形、繁体输入、常见短消息及人工可读性测试；不通过即标记未完成，不自动调用云端服务。
+2. ML Kit 翻译结果先经 OpenCC `t2s` 本地规范化，之后与原文同时显示；失败/离线时仍保留原文。
+3. ML Kit + OpenCC 通过繁简字形、繁体输入、自然度及真实 iOS 架构测试；不通过即标记未完成，不自动调用云端服务。
+4. 聊天正文始终不发往 Google Cloud、Telegram 翻译接口或 AI 回复 provider；模型下载只获取模型文件。
 5. 翻译开关与 AI 自动回复开关、profile 分配和各自授权互不影响。
 6. 频道权限与频道翻译能力受限时不开启；客户端不发送或修改频道内容/设置。
-7. 依赖与 Bazel 规则通过 Xcode release 构建，确认 iOS deployment target、资源/隐私清单、模型下载和无签名 IPA 打包均正确。
+7. 依赖与 Bazel 规则通过 Xcode release 构建，确认 iOS deployment target、许可证、资源/隐私清单、模型下载和无签名 IPA 打包均正确。
 
 ## 实施状态
 
-用户已选择 ML Kit 设备端路线。未使用 Cloud Translation API；未启用结算；未要求 API key。逐会话开关、设备端 ML Kit 集成、简体输出实测、原文+译文气泡 UI 和 Bazel 依赖均尚未实现/验证。GitHub Actions workflow/secrets 写权限仍待恢复，目前没有可验证的 IPA。
+用户已选择 ML Kit 设备端路线；OpenCC `t2s` 是推荐的本地简体字形规范化补充方案，尚待用户后续同意纳入实现。未使用 Cloud Translation API；未启用结算；未要求 API key。ML Kit、OpenCC、逐会话开关、简体输出验收、原文+译文气泡 UI 和 Bazel 依赖均尚未实现/验证，最终 IPA 增量体积也未测量。GitHub Actions workflow/secrets 写权限仍待恢复，目前没有可验证的 IPA。
 
 ## 来源
 
 - [ML Kit Translation：设备端处理与质量限制](https://developers.google.com/ml-kit/language/translation)
 - [ML Kit iOS：CocoaPods 安装、模型下载/管理与模型大小](https://developers.google.com/ml-kit/language/translation/ios)
 - [ML Kit 官方翻译语言表：中文仅列 `zh`](https://developers.google.com/ml-kit/language/translation/translation-language-support)
-- [`rules_apple`：导入预编译 Framework 的官方规则](https://github.com/bazelbuild/rules_apple/blob/master/doc/frameworks.md)
-- [Google ML Kit 样例仓库 issue：Translate Pod 的 iOS deployment target 记录](https://github.com/googlesamples/mlkit/issues/795)
+- [OpenCC 1.4.2 项目（固定 commit）](https://github.com/BYVoid/OpenCC/tree/fae2a0a911c30764e669a7d8b0591cd8e852934a)
+- [OpenCC Apache 2.0 LICENSE](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/LICENSE)
+- [OpenCC `t2s` 字典配置](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/data/config/t2s.json)
+- [OpenCC Bazel 根 target](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/BUILD.bazel)
+- [OpenCC Bazel 依赖模块](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/MODULE.bazel)
+- [OpenCC `.bazelversion`](https://github.com/BYVoid/OpenCC/blob/fae2a0a911c30764e669a7d8b0591cd8e852934a/.bazelversion)
+- [Telegram 固定上游 Bazel 版本](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/versions.json)
+- [Google ML Kit 样例 issue：Translate Pod 的 iOS deployment target 记录](https://github.com/googlesamples/mlkit/issues/795)
 - [固定上游：ChatTranslationPanelNode.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift)
-- [固定上游：ChatTranslation.swift](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TranslateUI/Sources/ChatTranslation.swift)
