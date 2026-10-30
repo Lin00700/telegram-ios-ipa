@@ -83,6 +83,35 @@ class UnsignedIPATests(unittest.TestCase):
             self.assertTrue(os.stat(Path(d) / 'Payload/Test.app/Test').st_mode & 0o111)
             self.assertTrue((Path(d) / 'Payload/Test.app/Alias').is_symlink())
 
+    def test_extra_resource_bundles_are_copied_intact(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            staged = root / 'staged'
+            app = root / 'Example.app'
+            bundle = staged / 'MLKitTranslate_resources.bundle'
+            bundle.mkdir(parents=True)
+            app.mkdir()
+            (bundle / 'Info.plist').write_bytes(plistlib.dumps({'CFBundlePackageType': 'BNDL'}))
+            (bundle / 'model.dat').write_bytes(b'local-model-resource')
+            (staged / 'CueMLKitNotices.txt').write_text('Third-party notices', encoding='utf-8')
+            copied = packager.copy_extra_resources(staged, app)
+            self.assertEqual(copied, 2)
+            self.assertEqual((app / bundle.name / 'model.dat').read_bytes(), b'local-model-resource')
+            self.assertTrue((app / bundle.name / 'Info.plist').is_file())
+            self.assertEqual((app / 'CueMLKitNotices.txt').read_text(encoding='utf-8'), 'Third-party notices')
+
+    def test_extra_resource_collision_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            staged = root / 'staged'
+            app = root / 'Example.app'
+            staged.mkdir()
+            app.mkdir()
+            (staged / 'Existing.bundle').mkdir()
+            (app / 'Existing.bundle').mkdir()
+            with self.assertRaises(SystemExit):
+                packager.copy_extra_resources(staged, app)
+
     def test_unsafe_extraction_rejected(self):
         for name, target in (('../escape', None), ('Payload/link', '../../../escape')):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as d:

@@ -86,6 +86,35 @@ def safe_extract(archive: zipfile.ZipFile, destination: Path) -> None:
         target.chmod(mode)
 
 
+def copy_extra_resources(source_dir: Path, app: Path) -> int:
+    if not source_dir.is_dir():
+        raise SystemExit("extra resource staging directory not found")
+    copied = 0
+    for source in sorted(source_dir.iterdir()):
+        if source.is_symlink():
+            raise SystemExit("extra resources contain a top-level symbolic link")
+        destination = app / source.name
+        if destination.exists():
+            raise SystemExit("extra resource collides with an existing app path: " + source.name)
+        if source.is_dir():
+            if source.suffix != ".bundle":
+                raise SystemExit("unexpected directory in extra resources: " + source.name)
+            base = source.resolve()
+            for entry in source.rglob("*"):
+                if entry.is_symlink():
+                    link = os.readlink(entry)
+                    resolved = (entry.parent / link).resolve()
+                    if os.path.isabs(link) or (resolved != base and base not in resolved.parents):
+                        raise SystemExit("extra resource bundle contains an unsafe symbolic link")
+            shutil.copytree(source, destination, symlinks=True)
+        elif source.is_file():
+            shutil.copy2(source, destination)
+        else:
+            raise SystemExit("unsupported staged resource: " + source.name)
+        copied += 1
+    return copied
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-ipa", required=True, type=Path)
@@ -93,6 +122,7 @@ def main() -> None:
     parser.add_argument("--base-bundle-id", required=True)
     parser.add_argument("--bundle-id", required=True)
     parser.add_argument("--display-name", required=True)
+    parser.add_argument("--extra-resources", type=Path)
     args = parser.parse_args()
     if not args.input_ipa.is_file():
         raise SystemExit(f"input IPA not found: {args.input_ipa}")
@@ -113,9 +143,11 @@ def main() -> None:
         if len(apps) != 1:
             raise SystemExit("expected exactly one top-level Payload/*.app in the upstream IPA")
 
+        app = apps[0]
         changed = update_info_plists(payload, args.base_bundle_id, args.bundle_id, args.display_name)
         if changed == 0:
             raise SystemExit("no bundle IDs matched the configured base app ID; refusing an ambiguous package")
+        extra_resource_count = copy_extra_resources(args.extra_resources, app) if args.extra_resources else 0
 
         # Remove nested code signatures deepest-first, then the containing app
         # signature. Do not keep any provisioning profile in a user-signed IPA.
@@ -143,7 +175,6 @@ def main() -> None:
             if check.returncode == 0:
                 raise SystemExit(f"a code signature remains after stripping: {path}")
 
-        app = apps[0]
         safe_name = re.sub(r"[^A-Za-z0-9._-]+", "", args.display_name.replace(" ", "")) or "UnofficialChat"
         renamed = app.with_name(f"{safe_name}.app")
         if renamed != app:
@@ -154,7 +185,7 @@ def main() -> None:
             ["/usr/bin/ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(payload), str(args.output_ipa.resolve())],
             check=True,
         )
-    print(f"Created unsigned IPA: {args.output_ipa} (updated {changed} bundle IDs; no embedded profiles/signature directories)")
+    print(f"Created unsigned IPA: {args.output_ipa} (updated {changed} bundle IDs; added {extra_resource_count} staged resources; no embedded profiles/signature directories)")
 
 
 if __name__ == "__main__":

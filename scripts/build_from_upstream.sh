@@ -68,6 +68,7 @@ python3 -u build-system/Make/Make.py \
 python3 "$ROOT/scripts/package_unsigned_ipa.py" \
   --input-ipa "$BUILD_ARTIFACTS/Telegram.ipa" \
   --output-ipa "$OUTPUT/UnofficialChat-unsigned.ipa" \
+  --extra-resources "$UPSTREAM/submodules/CueChatAutomation/MLKitVendor/Resources" \
   --base-bundle-id "$APP_BUNDLE_ID" \
   --bundle-id "$APP_BUNDLE_ID" \
   --display-name "$APP_DISPLAY_NAME"

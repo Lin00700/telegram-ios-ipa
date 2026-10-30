@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UPSTREAM="${1:?Usage: build_mlkit_vendor.sh <upstream-root>}"
-APP_ROOT="$UPSTREAM/Telegram/Telegram-iOS"
 POD_DIR="${RUNNER_TEMP:-/tmp}/cue-mlkit-pods"
 DERIVED="${RUNNER_TEMP:-/tmp}/cue-mlkit-derived"
 VENDOR="$UPSTREAM/submodules/CueChatAutomation/MLKitVendor"
@@ -14,7 +13,7 @@ if ! command -v pod >/dev/null 2>&1; then
 fi
 
 rm -rf "$POD_DIR" "$DERIVED" "$VENDOR"
-mkdir -p "$POD_DIR" "$APP_ROOT/Resources"
+mkdir -p "$POD_DIR" "$VENDOR/Resources"
 cp "$ROOT/third_party/mlkit/Podfile" "$POD_DIR/Podfile"
 
 pod install --project-directory="$POD_DIR" --silent
@@ -37,9 +36,9 @@ if [[ ! -d "$PRODUCTS" ]]; then
   echo "CocoaPods did not produce Release-iphoneos products at $PRODUCTS" >&2
   exit 1
 fi
-mkdir -p "$VENDOR/Frameworks"
+mkdir -p "$VENDOR/Frameworks" "$VENDOR/Resources"
 
-python3 - "$PRODUCTS" "$VENDOR" "$APP_ROOT/Resources" "$POD_DIR/Pods" <<'PY'
+python3 - "$PRODUCTS" "$VENDOR" "$VENDOR/Resources" "$POD_DIR/Pods" <<'PY'
 import json
 import plistlib
 import re
