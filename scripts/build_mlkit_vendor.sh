@@ -60,7 +60,7 @@ def add_framework(path: Path, priority: int, from_xcframework: bool = False) -> 
     if current is None or priority < current[0]:
         framework_candidates[name] = (priority, path)
 
-for path in products.glob("*.framework"):
+for path in products.rglob("*.framework"):
     add_framework(path, 0)
 if pods.is_dir():
     for path in pods.rglob("*.framework"):

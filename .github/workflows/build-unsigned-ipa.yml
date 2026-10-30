@@ -33,7 +33,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Test unsigned IPA validation and extraction
+      - name: Run packaging and ML Kit vendor regression tests
         run: python3 -m unittest discover -s tests -v
 
       - id: check
