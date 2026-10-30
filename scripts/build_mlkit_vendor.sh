@@ -7,7 +7,7 @@ APP_ROOT="$UPSTREAM/Telegram/Telegram-iOS"
 POD_DIR="${RUNNER_TEMP:-/tmp}/cue-mlkit-pods"
 DERIVED="${RUNNER_TEMP:-/tmp}/cue-mlkit-derived"
 VENDOR="$UPSTREAM/submodules/CueChatAutomation/MLKitVendor"
-PRODUCTS="$DERIVED/Build/Products/Release-iphoneos"
+PRODUCTS="$POD_DIR/build/Release-iphoneos"
 
 if ! command -v pod >/dev/null 2>&1; then
   sudo gem install cocoapods --no-document
@@ -30,6 +30,9 @@ xcodebuild \
   -derivedDataPath "$DERIVED" \
   CODE_SIGNING_ALLOWED=NO
 
+if [[ ! -d "$PRODUCTS" && -d "$DERIVED/Build/Products/Release-iphoneos" ]]; then
+  PRODUCTS="$DERIVED/Build/Products/Release-iphoneos"
+fi
 if [[ ! -d "$PRODUCTS" ]]; then
   echo "CocoaPods did not produce Release-iphoneos products at $PRODUCTS" >&2
   exit 1
