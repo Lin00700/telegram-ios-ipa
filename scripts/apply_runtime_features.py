@@ -157,10 +157,9 @@ def history_helpers() -> str:
             return
         }
 
-        let _ = self.context.account.postbox.peerView(id: accountPeerId)
+        let _ = (self.context.account.postbox.peerView(id: accountPeerId)
         |> take(1)
-        |> deliverOnMainQueue
-        |> startStrict(next: { [weak self] peerView in
+        |> deliverOnMainQueue).startStrict(next: { [weak self] peerView in
             guard let self, let accountUser = peerView.peers[accountPeerId] as? TelegramUser else {
                 completion(false)
                 return
@@ -262,10 +261,9 @@ def history_helpers() -> str:
                     return
                 }
                 let accountPeerId = self.context.account.peerId
-                let _ = self.context.account.postbox.messageAtId(replyMessageId)
+                let _ = (self.context.account.postbox.messageAtId(replyMessageId)
                 |> take(1)
-                |> deliverOnMainQueue
-                |> startStrict(next: { [weak self] repliedToMessage in
+                |> deliverOnMainQueue).startStrict(next: { [weak self] repliedToMessage in
                     guard let self, repliedToMessage?.author?.id == accountPeerId else {
                         return
                     }
