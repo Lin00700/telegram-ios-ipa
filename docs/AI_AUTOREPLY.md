@@ -41,6 +41,10 @@ Telegram 源码集成建议：
 - 每次请求前重新检查该会话开关、provider 分配、同意版本、发送权限和当前账号；任一项缺失则不调用 provider。
 - 先让用户手动预览回复，再开放“自动发送”选项。真正的自动发送也必须是该会话内的显式选择，并始终可以一键暂停。
 
+## 聊天翻译与自动回复严格分离
+
+逐会话自动翻译使用独立的 `ConversationTranslationSettings`（建议至少包含 `autoTranslateIncoming: false`、`targetLanguage: zh-Hans`、translation mode/provider 和单独的 consent version），按 `accountId + peerId + optional threadId` 保存。多选会话或分配 AI 助手不会开启翻译；翻译授权不会授权 AI 自动回复，AI 回复授权也不会授权把消息送去翻译。若翻译使用第三方 provider，必须在翻译开关开启前另行说明 provider/model/endpoint、要发送的入站文本和可能的数据处理方式，并取得该会话独立同意。实现细节和 Telegram 原生 Premium/频道规则见 [`CHAT_TRANSLATION.md`](CHAT_TRANSLATION.md)。
+
 ## 用户必须能看到的事实
 
 AI 请求把选定内容传到第三方 provider；Telegram 的加密/云端保护不延伸到用户自行选择的 AI 服务。provider 可能按自己的条款保留、处理或用于改进服务。用户应能查看当前助手、端点、模型、最近的处理状态，并随时撤回某一会话的授权。撤回无法追回已经发送给 provider 的内容。
