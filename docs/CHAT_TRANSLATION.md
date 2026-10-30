@@ -68,7 +68,7 @@ OpenCC 的 `t2s.json` 仅引用四个运行时字典：`CJK_Compatibility_Ideogr
 5. 测试模型未下载、下载失败、离线、蜂窝网络未授权、低内存及应用重启；原文始终可见，失败不丢消息、不记录正文。模型首下载默认仅 Wi-Fi。
 6. 检查聊天文本不会流向 Google Cloud、Telegram 翻译接口或 AI 回复 provider；关闭单个会话翻译后不再处理后续消息。
 
-当前工作环境没有 iOS/Xcode 运行环境，GitHub Actions workflow 写权限也仍受阻，因此上述 ML Kit + OpenCC 输出和集成均为**未验证**。
+本地工作环境没有 iOS/Xcode；GitHub Actions workflow 已发布，两项 Telegram API repository secrets 已通过仓库网页配置，基础 macOS 构建已实际启动。ML Kit + OpenCC 及其 UI 尚未加入构建，上述输出和集成仍为**未验证**。
 
 ## 与 AI 自动回复彻底分开
 
@@ -112,7 +112,7 @@ ConversationAISettings (accountId + peerId + optional threadId)
 
 ## 实施状态
 
-用户已选择 ML Kit 设备端路线，并要求增加逐聊天独立开关；OpenCC `t2s` 是推荐的本地简体字形规范化层。当前仓库只有规格与构建脚手架，没有 Telegram 应用源码或功能 overlay；因此运行时开关、翻译路径和原文+译文气泡尚未实现/验证。未使用 Cloud Translation API、未启用结算、未要求翻译 API key。GitHub Actions workflow/secrets 写权限仍待恢复，尚无可验证的 IPA。
+用户已选择 ML Kit 设备端路线，并要求增加逐聊天独立开关；OpenCC `t2s` 是推荐的本地简体字形规范化层。当前仓库只有规格与构建脚手架，没有 Telegram 翻译功能 overlay；因此运行时开关、翻译路径和原文+译文气泡尚未实现/验证。未使用 Cloud Translation API、未启用结算、未要求翻译 API key。Workflow 与 Telegram API secrets 已配置；首次真实构建在 Bazel 的 extension profile 校验处失败，正在修正 unsigned 补丁，尚无可验证的 IPA。
 
 ## 来源
 

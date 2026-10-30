@@ -32,7 +32,8 @@ python3 "$ROOT/scripts/generate_build_config.py" \
   --template "$UPSTREAM/build-system/template_minimal_development_configuration.json" \
   --output "$CONFIG"
 python3 "$ROOT/scripts/enable_unsigned_device_build.py" \
-  --make-script "$UPSTREAM/build-system/Make/Make.py"
+  --make-script "$UPSTREAM/build-system/Make/Make.py" \
+  --rules-apple-root "$UPSTREAM/build-system/bazel-rules/rules_apple"
 
 rm -rf "$BUILD_ARTIFACTS" "$OUTPUT"
 mkdir -p "$BUILD_ARTIFACTS" "$OUTPUT"

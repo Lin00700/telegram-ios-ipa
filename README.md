@@ -10,7 +10,7 @@ The repository contains the active Actions workflow, original icon asset, build/
 
 ## Build an unsigned device IPA
 
-The workflow is manually triggered from **Actions → Build unsigned IPA → Run workflow**. It checks out the official source recursively, selects the Xcode version declared by upstream `versions.json`, creates the configuration file only in the runner's temporary directory, and builds `release_arm64`. The upstream Bazel rules support a no-provisioning/no-signing device build, but the current upstream `Make.py build` CLI does not expose that flag. The workflow applies a small deterministic patch to the temporary checkout of `Make.py` so it can pass `--disableProvisioningProfiles`; no patch is committed to or sent upstream. It then strips/validates any remaining signatures or profiles and uploads an `.ipa` artifact. It does not import any Apple signing certificate or provisioning profile, and it never asks for or stores the user's Apple signing certificate.
+The workflow is manually triggered from **Actions → Build unsigned IPA → Run workflow**. It checks out the official source recursively, selects the Xcode version declared by upstream `versions.json`, creates the configuration file only in the runner's temporary directory, and builds `release_arm64`. The runner-local patch exposes `--disableProvisioningProfiles` in `Make.py`, forwards the rules_apple feature `disable_legacy_signing`, and makes six iOS app/extension profile-embedding branches honor that feature. The pinned rules_apple fork otherwise rejects device bundles without profiles even when Telegram's no-profile flag is set. These narrow patches affect only the temporary checkout; normal signed builds retain their profile checks. The packaging script then strips/validates remaining signatures or profiles and uploads an `.ipa` artifact. No Apple signing certificate or provisioning profile is imported or stored.
 
 Before a real build, add these GitHub Actions **repository secrets** (not repository files):
 
@@ -21,7 +21,7 @@ Telegram's official instructions say to obtain these at [my.telegram.org → API
 
 The workflow inputs `app_display_name` and `app_bundle_id` are for the non-official app identity. Use a unique reverse-DNS bundle ID that you control before signing. The default `com.lin00700.unofficialchat` is a suggested personal identifier; replace it if you do not control or want to use that identifier.
 
-The no-profile device build and IPA post-processing have not yet been run on a GitHub-hosted macOS runner, so the first artifact still needs verification. The resulting IPA will have no Apple team identity, provisioning profile or user certificate and cannot be installed until signed by the user.
+The first GitHub-hosted macOS run passed credential preflight, recursive source checkout and Xcode selection, then failed during Bazel analysis because `IntentsExtension` still required a provisioning profile. The revised unsigned patch passes local pinned-source syntax/idempotence checks but still needs a successful macOS build. There is no verified IPA yet. Any resulting unsigned IPA cannot be installed until signed by the user.
 
 ## AI assistant configuration needed
 
