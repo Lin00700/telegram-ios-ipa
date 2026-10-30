@@ -386,6 +386,14 @@ def patch_bubble(root: Path) -> None:
         return
     text = replace_exact(text, "import TelegramCore\n", "import TelegramCore\nimport CueChatAutomation\n", 1, "bubble automation import")
 
+    text = replace_exact(
+        text,
+        "                let attributedText: NSAttributedString\n",
+        "                var attributedText: NSAttributedString\n",
+        1,
+        "mutable translated message text",
+    )
+
     anchor = '''                } else {
                     attributedText = NSAttributedString(string: " ", font: textFont, textColor: messageTheme.primaryTextColor)
                 }
