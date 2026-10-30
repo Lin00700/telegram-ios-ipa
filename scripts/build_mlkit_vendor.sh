@@ -23,7 +23,7 @@ if [[ -f "$POD_DIR/Podfile.lock" ]]; then
 fi
 xcodebuild \
   -project "$POD_DIR/Pods/Pods.xcodeproj" \
-  -target Pods-CueMLKit \
+  -scheme Pods-CueMLKit \
   -configuration Release \
   -sdk iphoneos \
   -arch arm64 \
