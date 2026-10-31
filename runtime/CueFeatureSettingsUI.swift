@@ -158,6 +158,40 @@ public enum CueFeatureSettingsUI {
         presenter.present(alert, animated: true)
     }
 
+    public static func presentGlobalAIProviders(accountId: Int64) {
+        guard let presenter = self.activePresenter() else {
+            return
+        }
+        self.manageAIProviders(accountId: accountId, presenter: presenter)
+    }
+
+    private static func activePresenter() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }),
+              let root = scene.windows.first(where: \.isKeyWindow)?.rootViewController else {
+            return nil
+        }
+        return self.topmostPresenter(from: root)
+    }
+
+    private static func topmostPresenter(from controller: UIViewController) -> UIViewController {
+        if let presented = controller.presentedViewController {
+            return self.topmostPresenter(from: presented)
+        }
+        if let navigationController = controller as? UINavigationController,
+           let visible = navigationController.visibleViewController {
+            return self.topmostPresenter(from: visible)
+        }
+        if let tabController = controller as? UITabBarController,
+           let selected = tabController.selectedViewController {
+            return self.topmostPresenter(from: selected)
+        }
+        if let visibleChild = controller.children.reversed().first(where: { $0.viewIfLoaded?.window != nil }) {
+            return self.topmostPresenter(from: visibleChild)
+        }
+        return controller
+    }
+
     public static func manageAIProviders(accountId: Int64, presenter: UIViewController) {
         let profiles = CueFeaturePreferences.profiles(accountId: accountId)
         let message = profiles.isEmpty

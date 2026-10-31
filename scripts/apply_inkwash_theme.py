@@ -115,6 +115,9 @@ def patch_day_theme(path: Path) -> None:
             ("controlColor: UIColor(rgb: 0xb6b6bb)", "controlColor: UIColor(rgb: 0x9A9286)"),
         ]),
         ("    let chatList = PresentationThemeChatList(", "\n    let bubbleStrokeColor", [
+            ("backgroundColor: UIColor(rgb: 0xffffff)", "backgroundColor: UIColor(rgb: 0xF0ECE2)"),
+            ("itemSeparatorColor: UIColor(rgb: 0xc8c7cc)", "itemSeparatorColor: UIColor(rgb: 0xE3DED1)"),
+            ("itemBackgroundColor: UIColor(rgb: 0xffffff)", "itemBackgroundColor: UIColor(rgb: 0xFBF9F1)"),
             ("secretTitleColor: UIColor(rgb: 0x00b12c)", "secretTitleColor: UIColor(rgb: 0x6F8575)"),
             ("dateTextColor: UIColor(rgb: 0x8e8e93)", "dateTextColor: UIColor(rgb: 0x756E64)"),
             ("authorNameColor: UIColor(rgb: 0x000000)", "authorNameColor: UIColor(rgb: 0x26221D)"),

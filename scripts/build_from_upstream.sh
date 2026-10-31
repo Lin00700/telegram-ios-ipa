@@ -38,6 +38,7 @@ python3 "$ROOT/scripts/apply_runtime_features.py" --upstream "$UPSTREAM" --repo-
 python3 "$ROOT/scripts/apply_custom_client_ui.py" --upstream "$UPSTREAM"
 python3 "$ROOT/scripts/apply_inkwash_theme.py" --upstream "$UPSTREAM"
 python3 "$ROOT/scripts/apply_global_wallpaper.py" --upstream "$UPSTREAM"
+python3 "$ROOT/scripts/apply_inkwash_components.py" --upstream "$UPSTREAM"
 
 python3 "$ROOT/scripts/apply_branding.py" --app-root "$APP_ROOT" --display-name "$APP_DISPLAY_NAME" --icon "$ROOT/assets/unofficial-chat-icon.png"
 python3 "$ROOT/scripts/generate_build_config.py" \

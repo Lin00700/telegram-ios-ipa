@@ -100,6 +100,65 @@ def patch_chat_controller(root: Path) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def patch_settings_ai_entry(root: Path) -> None:
+    path = root / "submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift"
+    text = path.read_text(encoding="utf-8")
+    marker = "// CUE_AI_SETTINGS_ENTRY_V1"
+    if marker in text:
+        return
+
+    text = replace_exact(
+        text,
+        "import WalletContext\n",
+        "import WalletContext\nimport CueChatAutomation\n",
+        1,
+        "AI settings runtime module import",
+    )
+    anchor = "    let premiumConfiguration = PremiumConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })\n"
+    addition = '''    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 5, label: .text("按聊天分配 · 默认关闭"), text: "AI 助手", icon: PresentationResourcesSettings.aiTools, action: {
+        CueFeatureSettingsUI.presentGlobalAIProviders(accountId: context.account.peerId.toInt64())
+    })) // CUE_AI_SETTINGS_ENTRY_V1
+
+'''
+    text = replace_exact(text, anchor, addition + anchor, 1, "AI settings home entry")
+    path.write_text(text, encoding="utf-8")
+
+
+def patch_settings_section_headers(root: Path) -> None:
+    path = root / "submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift"
+    text = path.read_text(encoding="utf-8")
+    marker = "// CUE_INKWASH_SETTINGS_HEADERS_V1"
+    if marker in text:
+        return
+
+    anchor = "    var result: [(AnyHashable, [PeerInfoScreenItem])] = []\n    for section in SettingsSection.allCases {\n"
+    addition = '''    let cueSectionTitles: [SettingsSection: String] = [
+        .edit: "资料管理",
+        .phone: "安全提醒",
+        .accounts: "账户切换",
+        .myProfile: "个人资料",
+        .wallet: "钱包",
+        .proxy: "网络连接",
+        .apps: "应用与服务",
+        .shortcuts: "常用入口",
+        .advanced: "偏好与隐私",
+        .payment: "账户权益",
+        .extra: "更多功能",
+        .support: "帮助与支持"
+    ]
+    for section in SettingsSection.allCases {
+        guard var sectionItems = items[section], !sectionItems.isEmpty else {
+            continue
+        }
+        sectionItems.insert(PeerInfoScreenHeaderItem(id: "cue-settings-\\(section.rawValue)", text: cueSectionTitles[section] ?? "设置"), at: 0)
+        items[section] = sectionItems
+    }
+    // CUE_INKWASH_SETTINGS_HEADERS_V1
+'''
+    text = replace_exact(text, anchor, addition + anchor, 1, "Settings ink-wash section headings")
+    path.write_text(text, encoding="utf-8")
+
+
 def history_helpers() -> str:
     return r'''    private func cueFeatureMessageKey(_ message: Message, peerId: PeerId, threadId: Int64?) -> CueTranslationMessageKey {
         return CueTranslationMessageKey(
@@ -551,6 +610,8 @@ def main() -> None:
     copy_runtime_sources(repo_root, upstream)
     patch_build_dependencies(upstream, target_entries)
     patch_chat_controller(upstream)
+    patch_settings_ai_entry(upstream)
+    patch_settings_section_headers(upstream)
     patch_history_list(upstream)
     patch_bubble(upstream)
     patch_ziparchive_linkage(upstream)

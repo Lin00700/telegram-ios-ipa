@@ -75,6 +75,17 @@ class AIAutoReplyContract(unittest.TestCase):
         self.assertIn('aiOptions.autoReplyEnabled ? "关闭本聊天 AI 自动回复" : "开启本聊天 AI 自动回复"', ui)
         self.assertIn("Keychain", ui)
 
+    def test_global_ai_management_is_reachable_from_settings_home(self):
+        runtime = read("scripts/apply_runtime_features.py")
+        ui = read("runtime/CueFeatureSettingsUI.swift")
+        self.assertIn("def patch_settings_ai_entry(root: Path)", runtime)
+        self.assertIn("PeerInfoSettingsItems.swift", runtime)
+        self.assertIn("patch_settings_ai_entry(upstream)", runtime)
+        self.assertIn('text: "AI 助手"', runtime)
+        self.assertIn("presentGlobalAIProviders(accountId:", ui)
+        self.assertIn(".foregroundActive", ui)
+        self.assertIn("self.manageAIProviders(accountId: accountId, presenter: presenter)", ui)
+
     def test_native_provider_adapters_and_custom_protocol_picker(self):
         preferences = read("runtime/CueFeaturePreferences.swift")
         service = read("runtime/CueAIReplyService.swift")
@@ -182,6 +193,24 @@ class BuildContract(unittest.TestCase):
         self.assertIn("CUE_CF_DARK_INKWASH_THEME_V2", theme)
         self.assertIn('"    let messageDay = PresentationThemeChatMessage("', theme)
         self.assertIn('"    let actionSheet = PresentationThemeActionSheet("', theme)
+
+    def test_component_level_inkwash_redesign_is_in_the_build(self):
+        build = read("scripts/build_from_upstream.sh")
+        runtime = read("scripts/apply_runtime_features.py")
+        components = read("scripts/apply_inkwash_components.py")
+        theme = read("scripts/apply_inkwash_theme.py")
+        self.assertIn("apply_inkwash_components.py", build)
+        self.assertIn("patch_settings_section_headers(upstream)", runtime)
+        self.assertIn("CUE_INKWASH_SETTINGS_HEADERS_V1", runtime)
+        for marker in (
+            "CUE_INKWASH_SETTINGS_ICON_CATALOG_V1",
+            "CUE_INKWASH_PAPER_SECTION_CARD_V1",
+            "CUE_INKWASH_SECTION_TITLE_STYLE_V1",
+            "CUE_INKWASH_TAB_PAPER_SELECTION_V1",
+            "CUE_INKWASH_TAB_PAPER_SURFACE_V1",
+        ):
+            self.assertIn(marker, components)
+        self.assertIn("itemBackgroundColor: UIColor(rgb: 0xFBF9F1)", theme)
 
     def test_every_runtime_file_is_installed(self):
         installer = read("scripts/apply_runtime_features.py")
