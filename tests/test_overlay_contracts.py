@@ -158,6 +158,11 @@ class WallpaperContract(unittest.TestCase):
         self.assertIn('title: "恢复默认水墨聊天背景"', ui)
         self.assertNotIn("URLSession", picker)
 
+    def test_resource_values_use_mutable_urls(self):
+        picker = read("runtime/CueGlobalWallpaperPicker.swift")
+        self.assertIn("var destination = directory.appendingPathComponent(fileName)", picker)
+        self.assertIn('var directory = support.appendingPathComponent("Cue", isDirectory: true)', picker)
+
 
 class BuildContract(unittest.TestCase):
     def test_upstream_pin_is_consistent(self):

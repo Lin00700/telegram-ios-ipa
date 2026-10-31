@@ -51,7 +51,7 @@ public enum CueGlobalWallpaperSettingsUI {
                         }
                         let fileName = frameCount > 1 ? "CueGlobalWallpaper.gif" : "CueGlobalWallpaper.image"
                         let otherName = frameCount > 1 ? "CueGlobalWallpaper.image" : "CueGlobalWallpaper.gif"
-                        let destination = directory.appendingPathComponent(fileName)
+                        var destination = directory.appendingPathComponent(fileName)
                         try data.write(to: destination, options: .atomic)
                         var values = URLResourceValues()
                         values.isExcludedFromBackup = true
@@ -105,7 +105,7 @@ public enum CueGlobalWallpaperSettingsUI {
 
     private static func cueDirectory(create: Bool) -> URL? {
         guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        let directory = support.appendingPathComponent("Cue", isDirectory: true)
+        var directory = support.appendingPathComponent("Cue", isDirectory: true)
         if create {
             do {
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
