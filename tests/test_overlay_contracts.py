@@ -43,7 +43,7 @@ class AIAutoReplyContract(unittest.TestCase):
     def test_bots_are_skipped_and_channel_posts_require_permission_and_consent(self):
         src = read("scripts/apply_runtime_features.py")
         self.assertIn("author.botInfo != nil", src)
-        self.assertIn("isBroadcast && self.controllerInteraction.canSendMessages()", src)
+        self.assertIn("isBroadcast && (self.controllerInteraction?.canSendMessages() ?? false)", src)
         self.assertIn("else if isBroadcast || peerId.namespace", src)
         self.assertIn("rememberGeneratedReply", src)
         self.assertIn("consumeGeneratedReply", src)

@@ -84,7 +84,7 @@ def patch_chat_controller(root: Path) -> None:
                 isGroup = false
             }
             let isPrivateUser = peerId.namespace == Namespaces.Peer.CloudUser && peerId != self.context.account.peerId
-            let canAutoReply = isPrivateUser || isGroup || (isBroadcast && self.controllerInteraction.canSendMessages())
+            let canAutoReply = isPrivateUser || isGroup || (isBroadcast && (self.controllerInteraction?.canSendMessages() ?? false))
             CueFeatureSettingsUI.presentChatFeaturesMenu(
                 accountId: self.context.account.peerId.toInt64(),
                 peerId: peerId.toInt64(),
