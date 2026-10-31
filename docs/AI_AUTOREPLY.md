@@ -2,7 +2,7 @@
 
 ## 用户流程
 
-1. 用户从聊天自动化菜单打开全局“AI 服务商”管理，添加一个或多个服务商名称、OpenAI-compatible HTTPS endpoint、模型和 API key。配置保存在此账号范围内；密钥保存在本机 Keychain。
+1. 用户从聊天自动化菜单打开全局“AI 服务商”管理，选择 OpenAI、Anthropic Claude、Google Gemini 或自定义 OpenAI-compatible 协议，再添加服务商名称、HTTPS endpoint、模型和 API key。配置保存在此账号范围内；密钥保存在本机 Keychain。
 2. 用户在目标聊天内将一个或多个已添加服务商单独分配给该聊天。添加服务商不会自动分配，也不会自动开启自动回复。
 3. 用户打开某个会话，在会话内查看助手分配、数据范围和自动回复状态。每个会话、每个论坛主题分别保存状态，默认关闭。
 4. 首次请求之前，显示不可混淆的同意提示：会把哪些消息内容发送给哪些 provider、数据可能如何留存/使用，以及撤回同意的入口。用户必须明确同意该会话的数据外发后，才可以发送第一条内容。
@@ -36,7 +36,7 @@ Telegram 源码集成建议：
 - 所有会话初始 `autoReplyEnabled = false`；选择助手或批量选择会话不会打开它。
 - 首版仅发送触发消息的文本，不自动上传图片、文件、语音、联系人或完整聊天记录。扩展上下文必须由用户单独选择并在同意页明确说明。
 - 群组默认只在明确提及/回复机器人或用户配置的触发条件时处理，不扫描或转发群聊全部内容；每个群组需要自己的授权。
-- Secret Chats 默认不支持 AI 外发。只读频道或当前账号无权发送的会话不提供自动发送开关。
+- Secret Chats 默认不支持 AI 外发。频道只有在 Telegram 原生权限允许当前账号发帖、且用户在该频道单独同意公开自动发布后才提供自动发送开关；客户端不绕过服务器发送权限。
 - 不响应自己的消息、AI 自己的消息或机器人消息；使用消息 ID 去重、速率限制和最大回复长度，防止循环和刷屏。
 - 每次请求前重新检查该会话开关、provider 分配、同意版本、发送权限和当前账号；任一项缺失则不调用 provider。
 - 先让用户手动预览回复，再开放“自动发送”选项。真正的自动发送也必须是该会话内的显式选择，并始终可以一键暂停。
@@ -51,4 +51,6 @@ AI 请求把选定内容传到第三方 provider；Telegram 的加密/云端保�
 
 ## 实施状态
 
-代码现已包含全局服务商管理、Keychain 密钥存取、逐聊天服务商分配、独立默认关闭的自动回复开关和明确外发同意。当前 provider 请求格式为 OpenAI-compatible HTTPS；原生 Anthropic/Gemini 等非兼容协议还没有单独适配。静态回归测试通过，实际 iOS 构建与受控设备测试仍需验证“未同意绝不请求”“不同会话状态互不影响”“权限不足不会发送”。
+代码现已包含全局服务商类型选择、OpenAI Chat Completions、Anthropic Messages 和 Gemini `generateContent` 请求适配、自定义 OpenAI-compatible endpoint、Keychain 密钥存取、逐聊天分配、默认关闭的自动回复开关和明确外发同意。频道发帖受 Telegram 原生权限门控，并使用短时内存摘要抑制 AI 回帖自触发；其他具有专有请求/认证协议的服务需要各自适配。静态回归测试通过；真实 iOS 构建与受控设备测试仍需验证“未同意绝不请求”“不同会话状态互不影响”“权限不足不会发送”。
+
+协议参考：[OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create/)、[Anthropic Messages](https://platform.claude.com/docs/en/api/messages/create)、[Gemini `generateContent`](https://ai.google.dev/api/generate-content)。

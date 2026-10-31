@@ -40,10 +40,16 @@ class AIAutoReplyContract(unittest.TestCase):
         self.assertIn("!options.assignedProfileIDs.isEmpty", body)
         self.assertIn("CueAIReplyStore.shared.claim(key)", body)
 
-    def test_bots_and_broadcast_channels_are_skipped(self):
+    def test_bots_are_skipped_and_channel_posts_require_permission_and_consent(self):
         src = read("scripts/apply_runtime_features.py")
-        self.assertIn("guard !isBroadcast else", src)
         self.assertIn("author.botInfo != nil", src)
+        self.assertIn("isBroadcast && self.controllerInteraction.canSendMessages()", src)
+        self.assertIn("else if isBroadcast || peerId.namespace", src)
+        self.assertIn("rememberGeneratedReply", src)
+        self.assertIn("consumeGeneratedReply", src)
+        ui = read("runtime/CueFeatureSettingsUI.swift")
+        self.assertIn("公开发布到此频道", ui)
+        self.assertIn("不会绕过 Telegram 的服务器发送权限", ui)
 
     def test_provider_requires_https_and_keychain(self):
         svc = read("runtime/CueAIReplyService.swift")
@@ -68,6 +74,20 @@ class AIAutoReplyContract(unittest.TestCase):
         self.assertIn('title: "分配本聊天的 AI 服务商…"', ui)
         self.assertIn('aiOptions.autoReplyEnabled ? "关闭本聊天 AI 自动回复" : "开启本聊天 AI 自动回复"', ui)
         self.assertIn("Keychain", ui)
+
+    def test_native_provider_adapters_and_custom_protocol_picker(self):
+        preferences = read("runtime/CueFeaturePreferences.swift")
+        service = read("runtime/CueAIReplyService.swift")
+        ui = read("runtime/CueFeatureSettingsUI.swift")
+        for provider in ("openAI", "anthropic", "gemini", "openAICompatible"):
+            self.assertIn(f"case {provider}", preferences)
+        self.assertIn('for kind in CueAIProviderKind.allCases', ui)
+        self.assertIn('"x-api-key"', service)
+        self.assertIn('"anthropic-version"', service)
+        self.assertIn('"x-goog-api-key"', service)
+        self.assertIn('"systemInstruction"', service)
+        self.assertIn('root["candidates"]', service)
+        self.assertIn('root["choices"]', service)
 
 
 class TranslationContract(unittest.TestCase):

@@ -84,13 +84,14 @@ def patch_chat_controller(root: Path) -> None:
                 isGroup = false
             }
             let isPrivateUser = peerId.namespace == Namespaces.Peer.CloudUser && peerId != self.context.account.peerId
-            let canAutoReply = !isBroadcast && (isPrivateUser || isGroup)
+            let canAutoReply = isPrivateUser || isGroup || (isBroadcast && self.controllerInteraction.canSendMessages())
             CueFeatureSettingsUI.presentChatFeaturesMenu(
                 accountId: self.context.account.peerId.toInt64(),
                 peerId: peerId.toInt64(),
                 threadId: self.chatLocation.threadId,
                 presenter: self,
                 allowAutoReply: canAutoReply,
+                isBroadcast: isBroadcast,
                 onMoreOptions: openTelegramMenu
             )
         } // CUE_RUNTIME_FEATURES_V1
@@ -202,6 +203,7 @@ def history_helpers() -> str:
                         CueAIReplyStore.shared.finish(key, sent: false)
                         return
                     }
+                    CueAIReplyStore.shared.rememberGeneratedReply(accountId: key.accountId, peerId: key.peerId, text: reply)
                     self.controllerInteraction.sendMessage(reply, message.id)
                     CueAIReplyStore.shared.finish(key, sent: true)
                 }
@@ -218,6 +220,9 @@ def history_helpers() -> str:
         let key = self.cueFeatureMessageKey(message, peerId: peerId, threadId: threadId)
         let accountId = key.accountId
         let chatId = key.peerId
+        guard !CueAIReplyStore.shared.consumeGeneratedReply(accountId: accountId, peerId: chatId, text: message.text) else {
+            return
+        }
 
         if CueFeaturePreferences.isAutoTranslationEnabled(accountId: accountId, peerId: chatId, threadId: threadId),
            CueFeaturePreferences.hasTranslationConsent(accountId: accountId, peerId: chatId, threadId: threadId),
@@ -236,9 +241,6 @@ def history_helpers() -> str:
             }
         }
 
-        guard !isBroadcast else {
-            return
-        }
         if let author = message.author as? TelegramUser, author.botInfo != nil {
             return
         }
@@ -270,7 +272,7 @@ def history_helpers() -> str:
                     self.cueStartAIReply(message, peerId: peerId, threadId: threadId, key: key)
                 })
             }
-        } else if peerId.namespace == Namespaces.Peer.CloudUser {
+        } else if isBroadcast || peerId.namespace == Namespaces.Peer.CloudUser {
             self.cueStartAIReply(message, peerId: peerId, threadId: threadId, key: key)
         }
     }

@@ -9,14 +9,60 @@ public final class CueAIReplyStore {
         let threadId: Int64?
     }
 
+    private struct GeneratedReplyKey: Hashable {
+        let accountId: Int64
+        let peerId: Int64
+        let textDigest: UInt64
+    }
+
     private let lock = NSLock()
     private var pending = Set<CueTranslationMessageKey>()
     private var completed = Set<CueTranslationMessageKey>()
     private var completedOrder: [CueTranslationMessageKey] = []
     private var lastReplyAt: [ConversationKey: Date] = [:]
+    private var generatedReplyExpirations: [GeneratedReplyKey: Date] = [:]
     private let maximumEntries = 512
 
     private init() {
+    }
+
+    public func rememberGeneratedReply(accountId: Int64, peerId: Int64, text: String, validity: TimeInterval = 120.0) {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else {
+            return
+        }
+        let key = GeneratedReplyKey(accountId: accountId, peerId: peerId, textDigest: Self.digest(normalized))
+        let now = Date()
+        self.lock.lock()
+        self.generatedReplyExpirations = self.generatedReplyExpirations.filter { $0.value > now }
+        self.generatedReplyExpirations[key] = now.addingTimeInterval(validity)
+        if self.generatedReplyExpirations.count > 256,
+           let oldest = self.generatedReplyExpirations.min(by: { $0.value < $1.value })?.key {
+            self.generatedReplyExpirations.removeValue(forKey: oldest)
+        }
+        self.lock.unlock()
+    }
+
+    public func consumeGeneratedReply(accountId: Int64, peerId: Int64, text: String) -> Bool {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else {
+            return false
+        }
+        let key = GeneratedReplyKey(accountId: accountId, peerId: peerId, textDigest: Self.digest(normalized))
+        let now = Date()
+        self.lock.lock()
+        self.generatedReplyExpirations = self.generatedReplyExpirations.filter { $0.value > now }
+        let matched = self.generatedReplyExpirations.removeValue(forKey: key) != nil
+        self.lock.unlock()
+        return matched
+    }
+
+    private static func digest(_ text: String) -> UInt64 {
+        var value: UInt64 = 14_695_981_039_346_656_037
+        for byte in text.utf8 {
+            value = (value ^ UInt64(byte)) &* 1_099_511_628_211
+        }
+        return value
     }
 
     @discardableResult

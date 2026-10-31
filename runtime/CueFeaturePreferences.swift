@@ -1,18 +1,45 @@
 import Foundation
 import Security
 
+public enum CueAIProviderKind: String, Codable, CaseIterable, Equatable {
+    case openAI = "openai"
+    case anthropic = "anthropic"
+    case gemini = "gemini"
+    case openAICompatible = "openai-compatible"
+
+    public var displayName: String {
+        switch self {
+        case .openAI: return "OpenAI"
+        case .anthropic: return "Anthropic Claude"
+        case .gemini: return "Google Gemini"
+        case .openAICompatible: return "自定义 OpenAI-compatible"
+        }
+    }
+
+    public var defaultEndpoint: String? {
+        switch self {
+        case .openAI: return "https://api.openai.com/v1"
+        case .anthropic: return "https://api.anthropic.com"
+        case .gemini: return "https://generativelanguage.googleapis.com"
+        case .openAICompatible: return nil
+        }
+    }
+}
+
 public struct CueAIProfile: Codable, Equatable {
     public var id: String
     public var name: String
     public var endpoint: String
     public var model: String
+    public var providerKind: CueAIProviderKind?
     public var systemPrompt: String?
 
-    public init(id: String = UUID().uuidString, name: String, endpoint: String, model: String, systemPrompt: String? = nil) {
+    public init(id: String = UUID().uuidString, name: String, endpoint: String, model: String, providerKind: CueAIProviderKind? = nil, systemPrompt: String? = nil) {
         self.id = id
         self.name = name
         self.endpoint = endpoint
         self.model = model
+        self.providerKind = providerKind
         self.systemPrompt = systemPrompt
     }
 }
