@@ -34,6 +34,7 @@ class MLKitVendorCollectorTests(unittest.TestCase):
                 products / "GoogleToolboxForMac" / "GoogleToolboxForMac.framework",
                 products / "GTMSessionFetcher" / "GTMSessionFetcher.framework",
                 pods / "GoogleDataTransport" / "GoogleDataTransport.framework",
+                products / "SSZipArchive" / "SSZipArchive.framework",
             ]
             for framework in framework_paths:
                 framework.mkdir(parents=True)
@@ -94,6 +95,10 @@ class MLKitVendorCollectorTests(unittest.TestCase):
             for name in expected:
                 self.assertTrue((vendor / "Frameworks" / f"{name}.framework").is_dir())
                 self.assertIn(f'name = "{name}"', (vendor / "BUILD").read_text(encoding="utf-8"))
+            self.assertFalse((vendor / "Frameworks/SSZipArchive.framework").exists())
+            build = (vendor / "BUILD").read_text(encoding="utf-8")
+            self.assertNotIn('name = "SSZipArchive"', build)
+            self.assertIn('deps = ["//third-party/ZipArchive:ZipArchive"]', build)
 
 
 if __name__ == "__main__":

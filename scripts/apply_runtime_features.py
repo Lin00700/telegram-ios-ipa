@@ -516,6 +516,19 @@ def copy_runtime_sources(repo_root: Path, upstream_root: Path) -> None:
         shutil.copy2(repo_root / "assets/opencc" / name, resources / f"CueOpenCC_{name}")
 
 
+def patch_ziparchive_linkage(root: Path) -> None:
+    path = root / "third-party/ZipArchive/Sources/SSZipArchive.m"
+    text = path.read_text(encoding="utf-8")
+    # This helper has no public declaration or external callers. Keep both its
+    # forward declaration and definition local to the Objective-C translation unit.
+    old = "\nint _zipOpenEntry("
+    new = "\nstatic int _zipOpenEntry("
+    if text.count(new) == 2 and old not in text:
+        return
+    text = replace_exact(text, old, new, 2, "ZipArchive internal helper linkage")
+    path.write_text(text, encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--upstream", required=True, type=Path)
@@ -537,6 +550,7 @@ def main() -> None:
     patch_chat_controller(upstream)
     patch_history_list(upstream)
     patch_bubble(upstream)
+    patch_ziparchive_linkage(upstream)
     print("Integrated per-chat on-device translation and consent-gated AI auto-reply source overlays.")
 
 

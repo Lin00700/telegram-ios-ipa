@@ -56,6 +56,10 @@ def add_framework(path: Path, priority: int, from_xcframework: bool = False) -> 
     if not path.is_dir() or (not from_xcframework and any(parent.suffix == ".xcframework" for parent in path.parents)):
         return
     name = path.name[:-len(".framework")]
+    # Telegram's fork provides the standard unzip selector MLKitTranslate uses,
+    # plus Telegram-only archive browsing APIs. Keep that single implementation.
+    if name == "SSZipArchive":
+        return
     current = framework_candidates.get(name)
     if current is None or priority < current[0]:
         framework_candidates[name] = (priority, path)
@@ -136,6 +140,7 @@ for entry in entries:
         "apple_static_framework_import(",
         f'    name = "{entry["target"]}",',
         f'    framework_imports = glob(["Frameworks/{entry["name"]}.framework/**"]),',
+        *(['    deps = ["//third-party/ZipArchive:ZipArchive"],'] if entry["name"] == "MLKitTranslate" else []),
         '    sdk_frameworks = ["Accelerate", "CoreGraphics", "CoreTelephony", "Foundation", "LocalAuthentication", "NaturalLanguage", "Security", "SystemConfiguration", "UIKit"],',
         '    sdk_dylibs = ["c++", "iconv", "sqlite3", "z"],',
         '    visibility = ["//visibility:public"],',
