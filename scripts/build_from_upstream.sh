@@ -36,6 +36,7 @@ cp "$ROOT/assets/cf-inkwash-global.png" "$APP_ROOT/Resources/ChatWallpaperBuilti
 bash "$ROOT/scripts/build_mlkit_vendor.sh" "$UPSTREAM"
 python3 "$ROOT/scripts/apply_runtime_features.py" --upstream "$UPSTREAM" --repo-root "$ROOT"
 python3 "$ROOT/scripts/apply_custom_client_ui.py" --upstream "$UPSTREAM"
+python3 "$ROOT/scripts/apply_inkwash_theme.py" --upstream "$UPSTREAM"
 python3 "$ROOT/scripts/apply_global_wallpaper.py" --upstream "$UPSTREAM"
 
 python3 "$ROOT/scripts/apply_branding.py" --app-root "$APP_ROOT" --display-name "$APP_DISPLAY_NAME" --icon "$ROOT/assets/unofficial-chat-icon.png"

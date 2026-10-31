@@ -47,15 +47,15 @@ OpenCC 的 `t2s.json` 仅引用四个运行时字典：`CJK_Compatibility_Ideogr
 
 推荐实现方式是固定 OpenCC 1.4.2 源码/commit，在 Telegram Bazel 图中建立只含转换器与 `t2s` 资源的窄化 target；用 Objective-C++ 小封装把 Swift 消息译文送入 C++ `SimpleConverter`，再把结果返回消息显示层。OpenCC 的 Bazel `MODULE.bazel` 包含不少 Python、Node、测试和工具链依赖；直接照搬整个模块会比功能所需更重，宜只接入运行时代码和必要的 C++ 依赖，并固定其版本/许可证。
 
-集成后必须验证设备与模拟器架构、字典资源定位、线程安全/并发、内存和最终 IPA 资源体积。当前没有实际添加 OpenCC、创建 Bazel target 或运行 iOS 构建，因此目前只能说“技术上可行、应采用窄化 target”，不能称已集成、已构建或已测量最终体积。
+仓库现已集成 ML Kit 翻译依赖、本地 OpenCC `t2s` 转换代码与精简字典资源，并创建对应的 Bazel vendor 接入。仍必须验证设备与模拟器架构、字典资源定位、线程安全/并发、内存和最终 IPA 资源体积；不能在新的 Xcode 构建和设备测试前宣称这些运行时路径已验证。
 
 ## 固定上游的实现点与必须避开的路径
 
-当前仓库不是 Telegram 应用源码副本；构建脚本只在 CI 临时 checkout 上游、改品牌并补上 unsigned build 参数，尚无功能 overlay。实现运行时开关，需要再增加受版本固定的源码 overlay，并在 macOS/Xcode 构建中验证。
+当前仓库不是 Telegram 应用源码副本；构建脚本在 CI 临时 checkout 固定上游，并应用逐聊天翻译/AI overlay、品牌处理及 unsigned build 参数。源码补丁按固定 commit 锚定；运行时行为仍需 macOS/Xcode 构建和设备测试验证。
 
 上游已有的 `ChatTranslationState` 虽按 peer/thread 缓存一些状态，但它还受 Telegram 全局语言设置和翻译资格逻辑约束，不能替代本功能的“明确选择、默认 OFF”本地设置。频道的 `_internal_toggleAutoTranslation` 会调用 Telegram 服务器 API，也不能用于这里。应另存 `(accountId, peerId, optional threadId) -> autoTranslateIncoming`；没有记录时视为 OFF，并保存显式 OFF。可以从 [`ChatTranslation.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TranslateUI/Sources/ChatTranslation.swift) 学习 peer/thread 键方式，但不能复用其服务端语义。
 
-不应调用 Telegram 的 `messages.translateText` 翻译路径：它会请求 Telegram 服务，且现有 [`ChatMessageTextBubbleContentNode.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift) 展示路径会以译文替换原文。现有 [`ChatHistoryListNode.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Sources/ChatHistoryListNode.swift) 还会扫描可见历史消息来补译，也不满足只处理开关开启后新消息的要求。应只监听开关开启期间新插入的入站文字消息，关闭时取消/丢弃待处理结果，并在消息气泡中增加保留原文的次级译文行。
+不调用 Telegram 的 `messages.translateText` 翻译路径：它会请求 Telegram 服务，且现有 [`ChatMessageTextBubbleContentNode.swift`](https://github.com/TelegramMessenger/Telegram-iOS/blob/fb0e62ba8a147f0821da6aa63c09da7d79a10111/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift) 展示路径会以译文替换原文。当前 overlay 在聊天控制器监听用户开启期间新插入的入站文字消息，并在原文下方展示本机简体中文译文；翻译状态按账号、聊天和主题独立保存，关闭后不再处理新消息。
 
 ## 简体输出验收计划
 
@@ -68,7 +68,7 @@ OpenCC 的 `t2s.json` 仅引用四个运行时字典：`CJK_Compatibility_Ideogr
 5. 测试模型未下载、下载失败、离线、蜂窝网络未授权、低内存及应用重启；原文始终可见，失败不丢消息、不记录正文。模型首下载默认仅 Wi-Fi。
 6. 检查聊天文本不会流向 Google Cloud、Telegram 翻译接口或 AI 回复 provider；关闭单个会话翻译后不再处理后续消息。
 
-本地工作环境没有 iOS/Xcode；GitHub Actions workflow 已发布，两项 Telegram API repository secrets 已通过仓库网页配置，基础 macOS 构建已实际启动。ML Kit + OpenCC 及其 UI 尚未加入构建，上述输出和集成仍为**未验证**。
+沙盒没有 iOS/Xcode；静态回归测试已通过，新的隔离分支构建尚待完成。此前成功构建属于旧提交，不能作为新 overlay 的运行时验证。ML Kit/OpenCC 翻译输出、设备架构和最终 IPA 体积仍为**未验证**。
 
 ## 与 AI 自动回复彻底分开
 
@@ -112,7 +112,7 @@ ConversationAISettings (accountId + peerId + optional threadId)
 
 ## 实施状态
 
-用户已选择 ML Kit 设备端路线，并要求增加逐聊天独立开关；OpenCC `t2s` 是推荐的本地简体字形规范化层。当前仓库只有规格与构建脚手架，没有 Telegram 翻译功能 overlay；因此运行时开关、翻译路径和原文+译文气泡尚未实现/验证。未使用 Cloud Translation API、未启用结算、未要求翻译 API key。Workflow 与 Telegram API secrets 已配置；首次真实构建在 Bazel 的 extension profile 校验处失败，正在修正 unsigned 补丁，尚无可验证的 IPA。
+翻译 overlay 已实现逐聊天默认关闭、设备端 ML Kit 加 OpenCC `t2s`、保留原文并在下方显示译文，且不调用 Telegram 翻译 API或 AI provider。静态测试已通过；新的 iOS 构建和真实设备行为尚未验证。未使用 Cloud Translation API、未启用结算、未要求翻译 API key。
 
 ## 来源
 

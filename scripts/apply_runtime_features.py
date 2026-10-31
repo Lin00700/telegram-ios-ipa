@@ -500,6 +500,7 @@ def copy_runtime_sources(repo_root: Path, upstream_root: Path) -> None:
         "CueAIReplyService.swift",
         "CueAIReplyStore.swift",
         "CueFeatureSettingsUI.swift",
+        "CueGlobalWallpaperPicker.swift",
     ):
         shutil.copy2(repo_root / "runtime" / name, destination / name)
 

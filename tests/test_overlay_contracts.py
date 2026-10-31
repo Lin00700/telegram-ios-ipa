@@ -59,6 +59,16 @@ class AIAutoReplyContract(unittest.TestCase):
         block = prefs[prefs.index("public struct CueAIProfile"):prefs.index("public struct CueAIChatOptions")]
         self.assertNotIn("apiKey", block)
 
+    def test_provider_manager_is_global_and_does_not_auto_assign_or_enable(self):
+        ui = read("runtime/CueFeatureSettingsUI.swift")
+        self.assertIn('title: "管理 AI 服务商…"', ui)
+        self.assertIn('title: "添加 AI 服务商…"', ui)
+        self.assertIn("assignToChat: false", ui)
+        self.assertIn("if assignToChat {", ui)
+        self.assertIn('title: "分配本聊天的 AI 服务商…"', ui)
+        self.assertIn('aiOptions.autoReplyEnabled ? "关闭本聊天 AI 自动回复" : "开启本聊天 AI 自动回复"', ui)
+        self.assertIn("Keychain", ui)
+
 
 class TranslationContract(unittest.TestCase):
     def test_translation_is_gated_by_switch_and_consent_everywhere(self):
@@ -118,6 +128,16 @@ class WallpaperContract(unittest.TestCase):
         self.assertTrue((ROOT / "assets/cf-inkwash-global.png").is_file())
         self.assertIn("ChatWallpaperBuiltin0.png", read("scripts/build_from_upstream.sh"))
 
+    def test_photo_gif_picker_is_local_and_reachable(self):
+        picker = read("runtime/CueGlobalWallpaperPicker.swift")
+        ui = read("runtime/CueFeatureSettingsUI.swift")
+        self.assertIn("PHPickerViewController", picker)
+        self.assertIn('"CueGlobalWallpaperPath"', picker)
+        self.assertIn('"CueGlobalWallpaperChanged"', picker)
+        self.assertIn('title: "设置全局图片/GIF聊天背景…"', ui)
+        self.assertIn('title: "恢复默认水墨聊天背景"', ui)
+        self.assertNotIn("URLSession", picker)
+
 
 class BuildContract(unittest.TestCase):
     def test_upstream_pin_is_consistent(self):
@@ -129,6 +149,14 @@ class BuildContract(unittest.TestCase):
         build = read("scripts/build_from_upstream.sh")
         self.assertIn('--minimum-ios-version "15.5"', build)
         self.assertIn("--disableProvisioningProfiles", build)
+        self.assertIn("apply_inkwash_theme.py", build)
+
+    def test_full_inkwash_theme_targets_shared_and_live_message_variants(self):
+        theme = read("scripts/apply_inkwash_theme.py")
+        self.assertIn("CUE_CF_INKWASH_THEME_V2", theme)
+        self.assertIn("CUE_CF_DARK_INKWASH_THEME_V2", theme)
+        self.assertIn('"    let messageDay = PresentationThemeChatMessage("', theme)
+        self.assertIn('"    let actionSheet = PresentationThemeActionSheet("', theme)
 
     def test_every_runtime_file_is_installed(self):
         installer = read("scripts/apply_runtime_features.py")

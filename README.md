@@ -8,15 +8,15 @@ The app must not be presented as the official Telegram app and must not use Tele
 
 Applied to the pinned upstream checkout at build time (each patch is exact-match guarded and fails the build if upstream drifts):
 
-- **Visual theme** — warm ivory / brick-red palette for navigation, lists, chat list and bubbles, plus a bundled ink-wash default wallpaper (`scripts/apply_custom_client_ui.py`). This is a palette and wallpaper change, not yet a full ink-wash redesign of every screen.
-- **Global photo/GIF wallpaper** — picked from Photos, stored only in Application Support, aspect-fit (no stretching), dimmed in dark mode, GIFs sampled to at most 16 frames (`scripts/apply_global_wallpaper.py`).
+- **Global ink-wash theme** — extends the paper / ink / cinnabar / muted-jade palette across shared light and dark themes, including navigation, lists, chat bubbles, input panels and menus. The default bundled chat wallpaper remains local to the client (`scripts/apply_inkwash_theme.py`).
+- **Global photo/GIF wallpaper** — reachable from a chat's automation menu, picked from Photos and stored only in Application Support; aspect-fit (no stretching), dimmed in dark mode, and GIFs sampled to at most 16 frames (`runtime/CueGlobalWallpaperPicker.swift`, `scripts/apply_global_wallpaper.py`).
 - **Purchase-entry hiding** — Premium, Business, Stars, gifts, subscription prompts, wallet rows and StoreKit contexts are hidden locally. Server-side entitlements are not touched and nothing is unlocked.
 - **Per-chat local translation** — off by default, enabled per conversation, only for messages received after enabling; original text is kept and Simplified Chinese is shown below it. Uses on-device ML Kit plus bundled OpenCC `t2s`; no chat text is uploaded and Telegram Premium is not required. Minimum iOS is 15.5.
-- **Per-chat AI auto-reply** — separate from translation. Multiple named provider profiles can be assigned per conversation; every conversation starts OFF and needs its own explicit consent. API keys are entered at runtime and kept in the device Keychain (`ThisDeviceOnly`). Endpoints must be HTTPS. Replies go through Telegram's normal send path and respect send permission. Bots, broadcast channels and secret chats are not auto-replied to.
+- **AI providers and per-chat auto-reply** — add multiple OpenAI-compatible HTTPS services in the AI service manager, then assign them to chosen conversations; adding a provider never assigns or enables it. Translation remains separate. Each conversation starts OFF and needs its own explicit consent. API keys are entered at runtime and kept in the device Keychain (`ThisDeviceOnly`). Replies go through Telegram's normal send path and respect send permission. Bots, broadcast channels and secret chats are not auto-replied to.
 
-Verification: `python3 -m unittest discover -s tests -v` runs in the workflow preflight (packaging, ML Kit vendoring, and `tests/test_overlay_contracts.py` for the invariants above). Recent Actions runs have produced an unsigned IPA (e.g. run #17), but the visual changes and the translation/AI flows have **not** been verified on a real device yet.
+Verification: `python3 -m unittest discover -s tests -v` runs in the workflow preflight (30 static/package tests currently pass). Theme patch anchors were exercised against the pinned upstream theme sources. This does not replace an Xcode build or real-device verification; those remain pending for the new branch build.
 
-Known gaps: no full ink-wash restyle of every screen; AI auto-reply never fires in broadcast channels (they can be assigned but are read-only for non-admins); no end-to-end test of the "no network request without consent" invariant on a device.
+Known gaps: the CF Assistant reference screenshot was not available in this build session, so the implementation follows the documented palette rather than a pixel-perfect copy; native non-OpenAI-compatible Anthropic/Gemini APIs are not yet supported; AI auto-reply is intentionally unavailable in broadcast channels; full UI and privacy behavior still need real-device testing.
 
 ## Build an unsigned device IPA
 
