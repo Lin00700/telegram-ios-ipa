@@ -70,6 +70,33 @@ class UnsignedIPATests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validator.validate(p, BUNDLE_ID)
 
+    def test_chinese_display_name_is_allowed_and_written_to_plist(self):
+        display_name = '非官方聊天'
+        self.assertTrue(packager.SAFE_DISPLAY_NAME.fullmatch(display_name))
+        with tempfile.TemporaryDirectory() as d:
+            app = Path(d) / 'Example.app'
+            app.mkdir()
+            info = app / 'Info.plist'
+            info.write_bytes(plistlib.dumps({
+                'CFBundleIdentifier': BUNDLE_ID,
+                'CFBundleName': 'Example',
+                'CFBundleDisplayName': 'Example',
+            }))
+            changed = packager.update_info_plists(Path(d), BUNDLE_ID, 'com.example.unofficialchat.new', display_name)
+            updated = plistlib.loads(info.read_bytes())
+            self.assertEqual(changed, 1)
+            self.assertEqual(updated['CFBundleIdentifier'], 'com.example.unofficialchat.new')
+            self.assertEqual(updated['CFBundleName'], display_name)
+            self.assertEqual(updated['CFBundleDisplayName'], display_name)
+
+    def test_display_name_validation_keeps_length_and_character_limits(self):
+        for valid in ('Unofficial Chat', '非官方聊天', '非' * 30):
+            with self.subTest(name=valid):
+                self.assertTrue(packager.SAFE_DISPLAY_NAME.fullmatch(valid))
+        for invalid in ('', ' ' + '非官方聊天', '非' * 31, '../恶意', '名字/路径', 'Chat😀', '名称\n'):
+            with self.subTest(name=invalid):
+                self.assertFalse(packager.SAFE_DISPLAY_NAME.fullmatch(invalid))
+
     def test_safe_extract_keeps_modes_and_relative_links(self):
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, 'w') as archive:
