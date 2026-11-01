@@ -13,7 +13,7 @@ from pathlib import Path
 
 BUNDLE_DIRS = {".app", ".appex", ".framework", ".bundle", ".xpc"}
 VALID_BUNDLE_ID = re.compile(r"^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$")
-SAFE_DISPLAY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,29}$")
+SAFE_DISPLAY_NAME = re.compile(r"^[^\W_][\w ._-]{0,29}$")
 
 
 def remove_signature(path: Path) -> None:
@@ -129,7 +129,7 @@ def main() -> None:
     if not VALID_BUNDLE_ID.fullmatch(args.bundle_id):
         raise SystemExit("bundle ID must be a reverse-DNS identifier using letters, numbers, dots or hyphens")
     if not SAFE_DISPLAY_NAME.fullmatch(args.display_name):
-        raise SystemExit("display name must be 1-30 simple Latin letters, numbers, spaces, dots, underscores or hyphens")
+        raise SystemExit("display name must be 1-30 letters, numbers, spaces, dots, underscores or hyphens")
     if not args.base_bundle_id or "." not in args.base_bundle_id:
         raise SystemExit("invalid configured base bundle ID")
 
