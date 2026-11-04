@@ -9,7 +9,9 @@ import struct
 import zipfile
 from pathlib import Path, PurePosixPath
 
-EXPECTED_EXTENSIONS = {'Share', 'NotificationContent', 'NotificationService', 'SiriIntents', 'Widget', 'BroadcastUpload'}
+# Upstream can embed these extensions. This build omits them so a personal
+# certificate can re-sign the main app. Validation accepts either layout.
+UPSTREAM_EXTENSIONS = ('Share', 'NotificationContent', 'NotificationService', 'SiriIntents', 'Widget', 'BroadcastUpload')
 THIN = {b'\xce\xfa\xed\xfe': ('<', 28), b'\xcf\xfa\xed\xfe': ('<', 32), b'\xfe\xed\xfa\xce': ('>', 28), b'\xfe\xed\xfa\xcf': ('>', 32)}
 FAT = {b'\xca\xfe\xba\xbe': ('>', 20), b'\xbe\xba\xfe\xca': ('<', 20), b'\xca\xfe\xba\xbf': ('>', 32), b'\xbf\xba\xfe\xca': ('<', 32)}
 
@@ -108,9 +110,6 @@ def validate(path: Path, bundle_id: str) -> dict:
                 if not str(parent).startswith(app_root + '/PlugIns/') or not executable or not info.get('NSExtension', {}).get('NSExtensionPointIdentifier'):
                     raise ValueError('invalid extension structure: ' + str(parent))
                 extensions.append({'path': str(parent), 'bundle_id': identifier, 'extension_point': info['NSExtension']['NSExtensionPointIdentifier']})
-        expected = {bundle_id + '.' + suffix for suffix in EXPECTED_EXTENSIONS}
-        if {item['bundle_id'] for item in extensions} != expected or len(extensions) != 6:
-            raise ValueError('expected all six original iOS extensions')
         macho = {}
         for entry in infos:
             if entry.is_dir() or stat.S_ISLNK(entry.external_attr >> 16):
@@ -146,7 +145,7 @@ def main() -> None:
         raise SystemExit('IPA validation failed: ' + str(error)) from error
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n')
-    print('Unsigned IPA structure validated: six extensions, arm64, executable modes, no profiles or Mach-O signatures.')
+    print('Unsigned IPA structure validated: arm64 main app, executable modes, no profiles or Mach-O signatures.')
 
 
 if __name__ == '__main__':

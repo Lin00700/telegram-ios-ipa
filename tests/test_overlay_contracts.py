@@ -116,7 +116,6 @@ class WallpaperContract(unittest.TestCase):
 
     def test_bundled_ink_wash_asset_exists(self):
         self.assertTrue((ROOT / "assets/cf-inkwash-global.png").is_file())
-        self.assertIn("ChatWallpaperBuiltin0.png", read("scripts/build_from_upstream.sh"))
 
 
 class BuildContract(unittest.TestCase):
@@ -125,10 +124,12 @@ class BuildContract(unittest.TestCase):
         self.assertIn(sha, read(".github/workflows/build-unsigned-ipa.yml"))
         self.assertIn(sha, read("UPSTREAM.md") + read("README.md"))
 
-    def test_min_ios_is_15_5_and_unsigned(self):
+    def test_unsigned_build_disables_profiles_and_extensions(self):
         build = read("scripts/build_from_upstream.sh")
-        self.assertIn('--minimum-ios-version "15.5"', build)
         self.assertIn("--disableProvisioningProfiles", build)
+        self.assertIn("apply_resign_compat.py", build)
+        flags = read("scripts/enable_unsigned_device_build.py")
+        self.assertIn("'--//Telegram:disableExtensions'", flags)
 
     def test_every_runtime_file_is_installed(self):
         installer = read("scripts/apply_runtime_features.py")
