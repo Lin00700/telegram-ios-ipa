@@ -154,7 +154,7 @@ class FeatureStageTests(unittest.TestCase):
             self.assertIn(name, script)
         ink = (ROOT / "scripts" / "apply_ink_features.py").read_text(encoding="utf-8")
         prefs = (ROOT / "ink" / "Sources" / "InkPreferences.swift").read_text(encoding="utf-8")
-        retain = (ROOT / "ink" / "upstream" / "InkRetainDeletedMessages.swift").read_text(encoding="utf-8")
+        retain = (ROOT / "ink" / "core" / "InkRetainDeletedMessages.swift").read_text(encoding="utf-8")
         for key in ("ink.stealth.hideOnline", "ink.stealth.hideTyping", "ink.stealth.hideRead"):
             self.assertIn(key, ink)
             self.assertIn(key, prefs)

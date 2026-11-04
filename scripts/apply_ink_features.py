@@ -33,7 +33,7 @@ def install_module(repo_root: Path, upstream: Path) -> None:
     for source in sorted((repo_root / "ink/Sources").glob("*.swift")):
         shutil.copy2(source, destination / source.name)
     retain = upstream / "submodules/TelegramCore/Sources/InkRetainDeletedMessages.swift"
-    shutil.copy2(repo_root / "ink/upstream/InkRetainDeletedMessages.swift", retain)
+    shutil.copy2(repo_root / "ink/core/InkRetainDeletedMessages.swift", retain)
     build = '''load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 swift_library(
