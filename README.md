@@ -36,7 +36,7 @@ Actions → **Build unsigned IPA** → Run workflow。
 - 代理入口打开 Telegram 自带的 SOCKS5 / MTProxy 页面。
 - 多账号上限从 3 改成 10。服务器对普通账号可能还有自己的限制。
 
-Runner 是 `xcode-27`，Xcode 版本按上游 `versions.json` 选择。一次构建大约要一小时。产物是 `Shuimo-unsigned.ipa`，旁边有 `INSTALL.md`（扩展清单和建议 entitlements）。
+Runner 是 `xcode-27`，Xcode 版本按上游 `versions.json` 选择。一次构建大约要一小时。产物是 `Shuimo-unsigned.ipa`，旁边有 `INSTALL.md`（扩展清单和建议 entitlements）。基线产物已经编出；功能包在 runner 空出来之后再编。
 
 ## 上游
 
