@@ -145,6 +145,26 @@ class ResignCompatTests(unittest.TestCase):
         self.assertFalse(branding.SAFE_NAME.fullmatch("Chat😀"))
 
 
+class FeatureStageTests(unittest.TestCase):
+    def test_feature_stage_wires_the_same_hooks(self):
+        stage = (ROOT / "BUILD_STAGE").read_text(encoding="utf-8").strip()
+        self.assertEqual(stage, "features")
+        script = (ROOT / "scripts" / "apply_features.sh").read_text(encoding="utf-8")
+        for name in ("apply_inkwash_theme.py", "apply_inkwash_components.py", "apply_global_wallpaper.py", "apply_ink_features.py", "ChatWallpaperBuiltin0.png"):
+            self.assertIn(name, script)
+        ink = (ROOT / "scripts" / "apply_ink_features.py").read_text(encoding="utf-8")
+        prefs = (ROOT / "ink" / "Sources" / "InkPreferences.swift").read_text(encoding="utf-8")
+        retain = (ROOT / "ink" / "upstream" / "InkRetainDeletedMessages.swift").read_text(encoding="utf-8")
+        for key in ("ink.stealth.hideOnline", "ink.stealth.hideTyping", "ink.stealth.hideRead"):
+            self.assertIn(key, ink)
+            self.assertIn(key, prefs)
+        self.assertIn("ink.antiRecall.enabled", prefs)
+        self.assertIn("ink.antiRecall.enabled", retain)
+        self.assertIn("maximumNumberOfAccounts = 10", ink)
+        self.assertIn("InkAutoReplyPolicy.shouldReply", ink)
+        self.assertIn("case .mention", (ROOT / "ink" / "Sources" / "InkPolicy.swift").read_text(encoding="utf-8"))
+
+
 class UnsignedFlagTests(unittest.TestCase):
     def test_extensions_are_disabled_with_signing(self):
         text = (ROOT / "scripts" / "enable_unsigned_device_build.py").read_text(encoding="utf-8")

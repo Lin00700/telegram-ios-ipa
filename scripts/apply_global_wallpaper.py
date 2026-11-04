@@ -165,8 +165,19 @@ private func decodeCueGlobalWallpaper(path: String) -> UIImage? {
 }
 
 public func cueGlobalWallpaperImage() -> UIImage? {
-    guard let path = UserDefaults.standard.string(forKey: cueGlobalWallpaperPathKey),
-          FileManager.default.fileExists(atPath: path) else {
+    let path: String?
+    let activePeer = UserDefaults.standard.string(forKey: "ink.wallpaper.activePeer")
+    let chatEnabled = UserDefaults.standard.object(forKey: "ink.wallpaper.chatEnabled") as? Bool ?? true
+    if chatEnabled, let activePeer,
+       let chatPath = UserDefaults.standard.string(forKey: "ink.wallpaper.chat." + activePeer),
+       FileManager.default.fileExists(atPath: chatPath) {
+        path = chatPath
+    } else if (UserDefaults.standard.object(forKey: "ink.wallpaper.globalEnabled") as? Bool ?? true) == false {
+        path = nil
+    } else {
+        path = UserDefaults.standard.string(forKey: cueGlobalWallpaperPathKey)
+    }
+    guard let path, FileManager.default.fileExists(atPath: path) else {
         return nil
     }
     let modificationDate = (try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate]) as? Date
