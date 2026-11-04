@@ -1,6 +1,9 @@
 name: Build unsigned IPA
 
 on:
+  push:
+    branches:
+      - cursor/ink-telegram-client-1028
   workflow_dispatch:
     inputs:
       stage:
@@ -30,6 +33,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: unsigned-ipa-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -56,7 +63,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: TelegramMessenger/Telegram-iOS
-          ref: ${{ inputs.upstream_ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.upstream_ref || 'fb0e62ba8a147f0821da6aa63c09da7d79a10111' }}
           path: upstream
           submodules: recursive
           fetch-depth: 1
@@ -96,22 +103,43 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      - name: Resolve build stage and identity
+        id: buildargs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "stage=${{ inputs.stage }}" >> "$GITHUB_OUTPUT"
+            echo "name=${{ inputs.app_display_name }}" >> "$GITHUB_OUTPUT"
+            echo "bundle=${{ inputs.app_bundle_id }}" >> "$GITHUB_OUTPUT"
+            echo "ref=${{ inputs.upstream_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            stage="baseline"
+            if [[ -f BUILD_STAGE ]]; then
+              stage="$(tr -d '[:space:]' < BUILD_STAGE)"
+            fi
+            echo "stage=$stage" >> "$GITHUB_OUTPUT"
+            echo "name=水墨" >> "$GITHUB_OUTPUT"
+            echo "bundle=com.lin.telegram.ink" >> "$GITHUB_OUTPUT"
+            echo "ref=fb0e62ba8a147f0821da6aa63c09da7d79a10111" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build and package unsigned IPA
         shell: bash
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
           TG_API_HASH: ${{ secrets.TG_API_HASH }}
-          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
-          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          APP_DISPLAY_NAME: ${{ steps.buildargs.outputs.name }}
+          APP_BUNDLE_ID: ${{ steps.buildargs.outputs.bundle }}
           BUILD_NUMBER: ${{ github.run_number }}
-          INK_STAGE: ${{ inputs.stage }}
+          INK_STAGE: ${{ steps.buildargs.outputs.stage }}
           RUNNER_TEMP: ${{ runner.temp }}
         run: bash scripts/build_from_upstream.sh
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: shuimo-unsigned-${{ inputs.stage }}-${{ github.run_number }}
+          name: shuimo-unsigned-${{ steps.buildargs.outputs.stage }}-${{ github.run_number }}
           path: |
             artifacts/Shuimo-unsigned.ipa
             artifacts/unsigned-ipa-validation.json
@@ -126,9 +154,9 @@ jobs:
         if: success()
         shell: bash
         env:
-          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
-          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
-          INK_STAGE: ${{ inputs.stage }}
+          APP_BUNDLE_ID: ${{ steps.buildargs.outputs.bundle }}
+          APP_DISPLAY_NAME: ${{ steps.buildargs.outputs.name }}
+          INK_STAGE: ${{ steps.buildargs.outputs.stage }}
         run: |
           {
             echo "## 未签名 IPA"
