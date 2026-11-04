@@ -36,13 +36,13 @@ def add(archive, name, data, mode=0o644):
     archive.writestr(info, data)
 
 
-def fixture(path, *, signed=False, mode=0o755, missing=False, profile=False):
+def fixture(path, *, signed=False, mode=0o755, missing=False, profile=False, extensions=True):
     with zipfile.ZipFile(path, 'w') as archive:
         app = 'Payload/Example.app'
         main = {'CFBundleIdentifier': BUNDLE_ID, 'CFBundlePackageType': 'APPL', 'CFBundleExecutable': 'Example', 'CFBundleDisplayName': 'Unofficial Chat'}
         add(archive, app + '/Info.plist', plistlib.dumps(main))
         add(archive, app + '/Example', macho(signed), mode)
-        suffixes = sorted(validator.EXPECTED_EXTENSIONS)
+        suffixes = sorted(validator.UPSTREAM_EXTENSIONS) if extensions else []
         for suffix in suffixes[:-1] if missing else suffixes:
             folder = app + '/PlugIns/' + suffix + '.appex'
             data = {'CFBundleIdentifier': BUNDLE_ID + '.' + suffix, 'CFBundleExecutable': suffix, 'NSExtension': {'NSExtensionPointIdentifier': 'com.example.test'}}
@@ -60,10 +60,19 @@ class UnsignedIPATests(unittest.TestCase):
             result = validator.validate(p, BUNDLE_ID)
             self.assertEqual(len(result['extensions']), 6)
             self.assertEqual(result['macho_files_checked'], 7)
+
+    def test_main_app_without_extensions_is_valid(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'test.ipa'
+            fixture(p, extensions=False)
+            result = validator.validate(p, BUNDLE_ID)
+            self.assertEqual(result['extensions'], [])
+            self.assertEqual(result['macho_files_checked'], 1)
+            self.assertEqual(result['main_bundle_id'], BUNDLE_ID)
             self.assertFalse(result['runtime_functionality_tested'])
 
     def test_invalid_packages_rejected(self):
-        for options in ({'signed': True}, {'mode': 0o644}, {'missing': True}, {'profile': True}):
+        for options in ({'signed': True}, {'mode': 0o644}, {'profile': True}):
             with self.subTest(options=options), tempfile.TemporaryDirectory() as d:
                 p = Path(d) / 'test.ipa'
                 fixture(p, **options)

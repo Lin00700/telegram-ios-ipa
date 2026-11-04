@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Preserve bundle structure and package a verified unsigned IPA for user signing."""
 import argparse
+import json
 import os
 import plistlib
 import re
@@ -115,6 +116,21 @@ def copy_extra_resources(source_dir: Path, app: Path) -> int:
     return copied
 
 
+def removed_auxiliary_bundles(app: Path) -> list[str]:
+    """Drop extensions and a watch app so re-signing only has to cover the main app."""
+    removed: list[str] = []
+    for relative in ("PlugIns", "Watch"):
+        target = app / relative
+        if not target.exists():
+            continue
+        if target.is_dir():
+            for child in sorted(target.iterdir()):
+                removed.append(f"{relative}/{child.name}")
+        removed.append(relative)
+        shutil.rmtree(target)
+    return removed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-ipa", required=True, type=Path)
@@ -123,6 +139,7 @@ def main() -> None:
     parser.add_argument("--bundle-id", required=True)
     parser.add_argument("--display-name", required=True)
     parser.add_argument("--extra-resources", type=Path)
+    parser.add_argument("--contents-report", type=Path)
     args = parser.parse_args()
     if not args.input_ipa.is_file():
         raise SystemExit(f"input IPA not found: {args.input_ipa}")
@@ -148,6 +165,7 @@ def main() -> None:
         if changed == 0:
             raise SystemExit("no bundle IDs matched the configured base app ID; refusing an ambiguous package")
         extra_resource_count = copy_extra_resources(args.extra_resources, app) if args.extra_resources else 0
+        removed_bundles = removed_auxiliary_bundles(app)
 
         # Remove nested code signatures deepest-first, then the containing app
         # signature. Do not keep any provisioning profile in a user-signed IPA.
@@ -185,7 +203,16 @@ def main() -> None:
             ["/usr/bin/ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(payload), str(args.output_ipa.resolve())],
             check=True,
         )
-    print(f"Created unsigned IPA: {args.output_ipa} (updated {changed} bundle IDs; added {extra_resource_count} staged resources; no embedded profiles/signature directories)")
+        if args.contents_report:
+            args.contents_report.parent.mkdir(parents=True, exist_ok=True)
+            args.contents_report.write_text(json.dumps({
+                "display_name": args.display_name,
+                "bundle_id": args.bundle_id,
+                "bundle_ids_rewritten": changed,
+                "removed_bundles": removed_bundles,
+                "extensions_left_in_ipa": [],
+            }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"Created unsigned IPA: {args.output_ipa} (updated {changed} bundle IDs; removed {len(removed_bundles)} auxiliary bundles; added {extra_resource_count} staged resources; no embedded profiles/signature directories)")
 
 
 if __name__ == "__main__":

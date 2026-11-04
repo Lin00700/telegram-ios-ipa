@@ -5,7 +5,8 @@ import re
 import subprocess
 from pathlib import Path
 
-SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,29}$")
+# Same shape as packaging: 1–30 characters, Unicode letters allowed, no emoji or path characters.
+SAFE_NAME = re.compile(r"^[^\W_][\w ._-]{0,29}$")
 
 
 def main() -> None:
@@ -15,7 +16,7 @@ def main() -> None:
     parser.add_argument("--icon", type=Path, default=Path(__file__).resolve().parents[1] / "assets/unofficial-chat-icon.png")
     args = parser.parse_args()
     if not SAFE_NAME.fullmatch(args.display_name):
-        raise SystemExit("display name must be 1-30 simple Latin letters, numbers, spaces, dots, underscores or hyphens")
+        raise SystemExit("display name must be 1-30 letters, numbers, spaces, dots, underscores or hyphens")
     if not args.app_root.is_dir() or not args.icon.is_file():
         raise SystemExit("app root or original icon asset is missing")
 
