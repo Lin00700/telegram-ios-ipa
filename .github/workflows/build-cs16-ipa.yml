@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - cursor/xash-cs16-ipa-289d
+      - cursor/xash-cs16-fullscreen-zh-6959
   workflow_dispatch:
 
 permissions:
@@ -40,8 +41,10 @@ jobs:
           name: xash3d-fwgs-cs16-ios-arm64
           path: |
             xash-cs16/dist/xash3d-fwgs-cs16-ios-arm64.ipa
+            xash-cs16/dist/xash3d-fwgs-cs16-ios-arm64.ipa.sha256
             xash-cs16/dist/xash3d-fwgs-cs16-ios-arm64-dylibs.zip
             xash-cs16/dist/build-manifest.json
+            xash-cs16/dist/INSTALL.md
           if-no-files-found: error
           retention-days: 14
 
@@ -50,8 +53,8 @@ jobs:
         run: |
           {
             echo "## CS 1.6 iOS IPA"
-            echo "The artifact contains \`xash3d-fwgs-cs16-ios-arm64.ipa\` and a zip of the CS libraries."
-            echo "It does not contain Steam \`valve\` or \`cstrike\` game data."
-            echo "Default launch options: \`-game cstrike -dll @yapb\`."
-            echo "Resign the IPA with 全能签. See xash-cs16/INSTALL.md."
+            echo "The artifact contains \`xash3d-fwgs-cs16-ios-arm64.ipa\`, its sha256, INSTALL.md, and a zip of the CS libraries."
+            echo "It does not contain Steam \`valve\` or \`cstrike\` game data, and it does not contain a Chinese font."
+            echo "Default launch options: \`-game cstrike -dll @yapb\`. A Chinese phone also shows \`-language schinese\` or \`-language tchinese\`."
+            echo "Resign the IPA with 全能签. See INSTALL.md in the artifact."
           } >> "$GITHUB_STEP_SUMMARY"

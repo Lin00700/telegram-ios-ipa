@@ -21,8 +21,147 @@ elseif(XASH_ANDROID)
 elseif(XASH_WIN32 OR XASH_LINUX OR XASH_APPLE)
 	set(BUILDOS "") # no prefix for default OS"""
 
-LAUNCH_OLD = '[textField setText:@"-dev 2 -log"];'
-LAUNCH_NEW = '[textField setText:@"-game cstrike -dll @yapb"];'
+LAUNCH_LANG_OLD = """\t\tif (ret && ( settings.magic == SETTINGS_MAGIC ))
+\t\t{
+\t\t\t[textField setText:@(settings.args)];
+\t\t}
+\t\telse
+\t\t{
+\t\t\t[textField setText:@"-dev 2 -log"];
+\t\t}"""
+
+LAUNCH_LANG_NEW = """\t\tif (ret && ( settings.magic == SETTINGS_MAGIC ))
+\t\t{
+\t\t\t[textField setText:IOS_WithSystemLanguage( @(settings.args) )];
+\t\t}
+\t\telse
+\t\t{
+\t\t\t[textField setText:IOS_WithSystemLanguage( @"-game cstrike -dll @yapb" )];
+\t\t}"""
+
+LAUNCH_HELPER_OLD = "void IOS_LaunchDialog( void )\n{"
+LAUNCH_HELPER_NEW = """// Chinese phones get -language schinese (traditional: tchinese) in the
+// launch box. -language english stays English. The engine already mounts
+// <gamedir>_<language>/ when that flag is present.
+static NSString *IOS_WithSystemLanguage( NSString *options )
+{
+	NSString *pref;
+	NSString *lang = nil;
+
+	if( options == nil )
+		options = @"";
+	if( [options rangeOfString:@"-language"].location != NSNotFound )
+		return options;
+
+	pref = [NSLocale preferredLanguages].firstObject;
+	if( [pref hasPrefix:@"zh-Hant"] || [pref hasPrefix:@"zh-TW"] || [pref hasPrefix:@"zh-HK"] || [pref hasPrefix:@"zh-MO"] )
+		lang = @"tchinese";
+	else if( [pref hasPrefix:@"zh"] )
+		lang = @"schinese";
+
+	if( lang == nil )
+		return options;
+	if( options.length == 0 )
+		return [NSString stringWithFormat:@"-language %@", lang];
+	return [options stringByAppendingFormat:@" -language %@", lang];
+}
+
+void IOS_LaunchDialog( void )
+{"""
+
+VIDMODE_OLD = """\t\twidth = DEFAULT_MODE_WIDTH;
+\t\theight = DEFAULT_MODE_HEIGHT;
+#endif
+\t}
+
+#if XASH_MOBILE_PLATFORM"""
+
+VIDMODE_NEW = """\t\twidth = DEFAULT_MODE_WIDTH;
+\t\theight = DEFAULT_MODE_HEIGHT;
+#endif
+\t}
+
+#if XASH_IOS
+\t// The window is the display. A width/height saved by a build that iOS
+\t// letterboxed at the legacy 3:2 size must not stick.
+\t{
+\t\tSDL_DisplayMode desktop;
+
+\t\tif( SDL_GetDesktopDisplayMode( 0, &desktop ) == 0
+\t\t\t&& desktop.w >= VID_MIN_WIDTH && desktop.h >= VID_MIN_HEIGHT )
+\t\t{
+\t\t\twidth = desktop.w;
+\t\t\theight = desktop.h;
+\t\t\tif( height > width )
+\t\t\t{
+\t\t\t\tint swap = width;
+\t\t\t\twidth = height;
+\t\t\t\theight = swap;
+\t\t\t}
+\t\t}
+\t}
+#endif
+
+#if XASH_MOBILE_PLATFORM"""
+
+HINT_OLD = """\tSDL_SetHint( SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0" );
+\tSDL_SetHint( SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO, "0" );"""
+
+HINT_NEW = """\tSDL_SetHint( SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0" );
+\tSDL_SetHint( SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO, "0" );
+#if XASH_IOS
+\t// Game pixels cover the screen. Touch buttons still use the safe area.
+\tSDL_SetHint( SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2" );
+#endif"""
+
+FONT_OLD = """bool CFontManager::FindFontDataFile( const char *name, int tall, int weight, int flags, char *dataFile, size_t dataFileChars )
+{
+\tif( !strcmp( name, "Trebuchet MS" ))"""
+
+FONT_NEW = """bool CFontManager::FindFontDataFile( const char *name, int tall, int weight, int flags, char *dataFile, size_t dataFileChars )
+{
+\t// User-supplied TrueType face on the game path:
+\t// cstrike/gfx/fonts/chinese.ttf or valve/gfx/fonts/chinese.ttf.
+\tif( EngFuncs::FileExists( "gfx/fonts/chinese.ttf", false ))
+\t{
+\t\tQ_strncpy( dataFile, "gfx/fonts/chinese.ttf", dataFileChars );
+\t\treturn true;
+\t}
+
+\tif( !strcmp( name, "Trebuchet MS" ))"""
+
+PICBUTTON_TEXT_OLD = "\tuiStatic.renderPicbuttonText = gMenu.m_gameinfo.flags & GFL_RENDER_PICBUTTON_TEXT;"
+
+PICBUTTON_TEXT_NEW = """\tuiStatic.renderPicbuttonText = gMenu.m_gameinfo.flags & GFL_RENDER_PICBUTTON_TEXT;
+\t// Main-menu labels are English bitmaps from the game files. A CJK face
+\t// cannot retint those pictures, so draw the localized strings instead.
+\tif( EngFuncs::FileExists( "gfx/fonts/chinese.ttf", false ))
+\t\tuiStatic.renderPicbuttonText = true;"""
+
+STATUS_OLD = """\t\tint\tr, g, b;
+
+\t\tUnpackRGB( r, g, b, uiColorHelp );
+\t\tEngFuncs::DrawSetTextColor( r, g, b );
+\t\tEngFuncs::DrawConsoleString( coord, szStatusText );"""
+
+STATUS_NEW = """\t\tif( uiStatic.renderPicbuttonText )
+\t\t{
+\t\t\tint charH = (int)( UI_SMALL_CHAR_HEIGHT * uiStatic.scaleY );
+\t\t\tSize area( 4096, charH + 8 );
+
+\t\t\tif( charH < 1 )
+\t\t\t\tcharH = UI_SMALL_CHAR_HEIGHT;
+\t\t\t// Console glyphs have no CJK. The menu face does when chinese.ttf is present.
+\t\t\tUI_DrawString( uiStatic.hSmallFont, coord, area, szStatusText, uiColorHelp, charH, QM_LEFT, ETF_NOSIZELIMIT | ETF_FORCECOL );
+\t\t}
+\t\telse
+\t\t{
+\t\t\tint\tr, g, b;
+
+\t\t\tUnpackRGB( r, g, b, uiColorHelp );
+\t\t\tEngFuncs::DrawSetTextColor( r, g, b );
+\t\t\tEngFuncs::DrawConsoleString( coord, szStatusText );
+\t\t}"""
 
 YAPB_INCLUDE_OLD = "#include <yapb.h>\n"
 YAPB_INCLUDE_NEW = """#include <yapb.h>
@@ -134,7 +273,18 @@ def patch_tree(xash: Path, cs16: Path) -> None:
     launch = xash / "engine/platform/ios/launchdialog.m"
     if not launch.is_file():
         raise SystemExit(f"missing launch dialog: {launch}")
-    replace_once(launch, LAUNCH_OLD, LAUNCH_NEW, "default launch args")
+    replace_once(launch, LAUNCH_HELPER_OLD, LAUNCH_HELPER_NEW, "system language launch args")
+    replace_once(launch, LAUNCH_LANG_OLD, LAUNCH_LANG_NEW, "default launch args and system language")
+
+    vid = xash / "engine/platform/sdl2/vid_sdl2.c"
+    sys_sdl = xash / "engine/platform/sdl2/sys_sdl2.c"
+    replace_once(vid, VIDMODE_OLD, VIDMODE_NEW, "iOS native video size")
+    replace_once(sys_sdl, HINT_OLD, HINT_NEW, "iOS home indicator hint")
+
+    mainui = cs16 / "3rdparty/mainui_cpp"
+    replace_once(mainui / "font/FontManager.cpp", FONT_OLD, FONT_NEW, "user CJK menu font")
+    replace_once(mainui / "BaseMenu.cpp", PICBUTTON_TEXT_OLD, PICBUTTON_TEXT_NEW, "text menu buttons when a CJK font is present")
+    replace_once(mainui / "controls/PicButton.cpp", STATUS_OLD, STATUS_NEW, "menu status text through the vector font")
 
     naming = [
         cs16 / "cmake/LibraryNaming.cmake",
