@@ -192,22 +192,34 @@ cp -R "$SDL_FRAMEWORK" "$APP/SDL2.framework"
 cp "$XASH_SRC/engine/platform/ios/bundle/Info.plist" "$APP/Info.plist"
 # iOS letterboxes an app that has no launch screen to the legacy 3:2 (320x480)
 # point size. UILaunchStoryboardName in the upstream plist points at "Launch",
-# which was not in the bundle, so older builds deleted the key. Compile it.
-ibtool --errors --warnings --compile "$APP/Launch.storyboardc" "$ROOT/ios/Launch.storyboard"
-python3 - "$APP/Info.plist" <<'PY'
+# which was not in the bundle, so older builds deleted the key.
+log "compile launch storyboard"
+set +e
+xcrun ibtool --errors --warnings --compile "$APP/Launch.storyboardc" "$ROOT/ios/Launch.storyboard"
+ibtool_status=$?
+set -e
+if [[ "$ibtool_status" -ne 0 ]]; then
+	echo "ibtool exited $ibtool_status; using the UILaunchScreen plist instead" >&2
+	rm -rf "$APP/Launch.storyboardc"
+fi
+python3 - "$APP/Info.plist" "$ibtool_status" <<'PY'
 import plistlib, sys
-path = sys.argv[1]
+path, ibtool_status = sys.argv[1:]
 with open(path, "rb") as fh:
     info = plistlib.load(fh)
-if info.get("UILaunchStoryboardName") != "Launch":
-    raise SystemExit("UILaunchStoryboardName is not Launch")
 info["UIStatusBarHidden"] = True
 info["UIViewControllerBasedStatusBarAppearance"] = False
-# iOS 14 and later use this dictionary. The storyboard covers iOS 12 and 13.
-info["UILaunchScreen"] = {}
+# iOS 14 and later size the app from this dictionary.
+info["UILaunchScreen"] = {"UIImageRespectsSafeAreaInsets": False}
+if ibtool_status == "0":
+    if info.get("UILaunchStoryboardName") != "Launch":
+        raise SystemExit("UILaunchStoryboardName is not Launch")
+else:
+    # A dangling storyboard name with no compiled file brings the letterbox back.
+    info.pop("UILaunchStoryboardName", None)
 with open(path, "wb") as fh:
     plistlib.dump(info, fh)
-print("launch screen keys written")
+print("launch screen keys written, storyboard", "yes" if ibtool_status == "0" else "no")
 PY
 
 log "sign nested code, then the app"
@@ -291,16 +303,20 @@ need = [
     "valve/cl_dlls/client_ios_arm64.dylib",
     "valve/dlls/hl_ios_arm64.dylib",
     "xash",
-    "Launch.storyboardc/Info.plist",
     "Info.plist",
 ]
 missing = [rel for rel in need if not any(n.endswith("/" + rel) or n.endswith(rel) for n in names)]
 banned = [n for n in names if n.lower().endswith(".bsp") or n.lower().endswith(".dll") or n.lower().endswith("chinese.ttf")]
 info_name = next(n for n in names if n.endswith("xash3d.app/Info.plist"))
 info = plistlib.loads(ipa.read(info_name))
-if info.get("UILaunchStoryboardName") != "Launch" or "UILaunchScreen" not in info:
-    print("Info.plist launch screen keys", info.get("UILaunchStoryboardName"), "UILaunchScreen" in info)
+has_storyboard = any("Launch.storyboardc/" in n for n in names)
+if "UILaunchScreen" not in info:
+    print("Info.plist has no UILaunchScreen")
     raise SystemExit(1)
+if info.get("UILaunchStoryboardName") == "Launch" and not has_storyboard:
+    print("UILaunchStoryboardName points at a missing storyboard")
+    raise SystemExit(1)
+print("launch screen", "storyboard" if has_storyboard else "plist-only")
 extras_name = next(n for n in names if n.endswith("cstrike/extras.pk3"))
 extras = zipfile.ZipFile(io.BytesIO(ipa.read(extras_name)))
 for lang in ("resource/mainui_schinese.txt", "resource/mainui_tchinese.txt"):
