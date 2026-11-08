@@ -132,7 +132,9 @@ cmake -S "$WORK/cs16-client" -B "$WORK/cs16-build" \
 	-DGAME_DIR=cstrike \
 	-DGAMEDIR=cstrike \
 	-DCLIENT_INSTALL_DIR=cl_dlls \
-	-DSERVER_INSTALL_DIR=dlls
+	-DSERVER_INSTALL_DIR=dlls \
+	-DYAPB_WITH_TLS=OFF \
+	-DYAPB_LTO=OFF
 cmake --build "$WORK/cs16-build" --config Debug -j"$JOBS"
 cmake --install "$WORK/cs16-build" --prefix "$LIBSDIR"
 

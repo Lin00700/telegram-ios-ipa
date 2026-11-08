@@ -43,6 +43,34 @@ static void YapbModuleAnchor() {}
 bool Game::LoadCsBinary () {
 """
 
+YAPB_PROC_OLD = """set(_PROC "${CMAKE_SYSTEM_PROCESSOR}")
+if(_PROC MATCHES "^(arm64|ARM64)$")
+  set(_PROC "aarch64")
+endif()"""
+
+YAPB_PROC_NEW = """set(_PROC "${CMAKE_SYSTEM_PROCESSOR}")
+# The iOS toolchain still reports the Mac host processor. That selects x86
+# march/SSE flags and a macOS deployment target, which cannot link an arm64 device dylib.
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  set(_PROC "aarch64")
+elseif(_PROC MATCHES "^(arm64|ARM64)$")
+  set(_PROC "aarch64")
+endif()"""
+
+YAPB_WERROR_OLD = """  if(NOT VITA AND NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
+    list(APPEND _strict_cflags -Wall -Wextra -Wpedantic -Werror)
+  endif()"""
+
+YAPB_WERROR_NEW = """  if(NOT VITA AND NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten" AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND _strict_cflags -Wall -Wextra -Wpedantic -Werror)
+  endif()"""
+
+YAPB_APPLE_OLD = """  elseif(APPLE)
+    if(IS_ZIG)"""
+
+YAPB_APPLE_NEW = """  elseif(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    if(IS_ZIG)"""
+
 YAPB_LOAD_OLD = """    if (path.empty ()) {
       path = ystl::strings.join_path (modname, "dlls", lib) + kLibrarySuffix;
 
@@ -121,6 +149,10 @@ def patch_tree(xash: Path, cs16: Path) -> None:
     replace_once(engine, YAPB_INCLUDE_OLD, YAPB_INCLUDE_NEW, "YaPB Apple headers")
     replace_once(engine, YAPB_ANCHOR_OLD, YAPB_ANCHOR_NEW, "YaPB image anchor")
     replace_once(engine, YAPB_LOAD_OLD, YAPB_LOAD_NEW, "YaPB bundle gamedll lookup")
+    replace_once(cs16 / "3rdparty/yapb/CMakeLists.txt", YAPB_PROC_OLD, YAPB_PROC_NEW, "YaPB iOS architecture")
+    flags = cs16 / "3rdparty/yapb/cmake/YapbFlags.cmake"
+    replace_once(flags, YAPB_WERROR_OLD, YAPB_WERROR_NEW, "YaPB iOS warnings")
+    replace_once(flags, YAPB_APPLE_OLD, YAPB_APPLE_NEW, "YaPB iOS deployment target")
 
 
 def main() -> int:
