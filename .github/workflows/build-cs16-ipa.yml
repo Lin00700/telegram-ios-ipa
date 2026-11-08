@@ -1,0 +1,57 @@
+name: Build CS 1.6 iOS IPA
+
+# Launch foothold: the GitHub App on this account cannot create Lin00700/xash-cs16-ios.
+# This workflow only builds the packaging tree under xash-cs16/ and does not touch the Telegram client.
+on:
+  push:
+    branches:
+      - cursor/xash-cs16-ipa-289d
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cs16-ios-ipa-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout packaging scripts
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Show Xcode
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Build ad-hoc IPA
+        shell: bash
+        run: bash xash-cs16/scripts/build-ipa.sh
+
+      - name: Upload IPA and CS libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: xash3d-fwgs-cs16-ios-arm64
+          path: |
+            xash-cs16/dist/xash3d-fwgs-cs16-ios-arm64.ipa
+            xash-cs16/dist/xash3d-fwgs-cs16-ios-arm64-dylibs.zip
+            xash-cs16/dist/build-manifest.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize
+        if: success()
+        run: |
+          {
+            echo "## CS 1.6 iOS IPA"
+            echo "The artifact contains \`xash3d-fwgs-cs16-ios-arm64.ipa\` and a zip of the CS libraries."
+            echo "It does not contain Steam \`valve\` or \`cstrike\` game data."
+            echo "Default launch options: \`-game cstrike -dll @yapb\`."
+            echo "Resign the IPA with 全能签. See xash-cs16/INSTALL.md."
+          } >> "$GITHUB_STEP_SUMMARY"

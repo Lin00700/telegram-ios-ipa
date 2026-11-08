@@ -1,0 +1,8 @@
+.DS_Store
+dist/
+build/
+*.ipa
+*.zip
+*.dylib
+__pycache__/
+*.pyc
