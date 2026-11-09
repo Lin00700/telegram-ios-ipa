@@ -8,7 +8,7 @@ The engine on iOS loads `client_ios_arm64.dylib`, `menu_ios_arm64.dylib`, and `y
 
 First launch fills the engine dialog with `-game cstrike -dll @yapb`. On a phone whose preferred language is Chinese, the dialog also appends `-language schinese` or `-language tchinese`. `-language english` keeps the English menu.
 
-The IPA includes a launch screen, so iOS gives the app the phone's real size instead of the legacy 3:2 letterbox. Menu Chinese is the open-source main menu only: drop a TrueType file at `cstrike/gfx/fonts/chinese.ttf`. In-game HUD, chat, and radio stay on the engine bitmap font. See [INSTALL.md](INSTALL.md).
+The IPA includes a launch screen, so iOS gives the app the phone's real size instead of the legacy 3:2 letterbox. On a Chinese phone the open-source main menu is drawn with a bundled subset of WenQuanYi Micro Hei (Apache-2.0 or GPL-3). In-game HUD, chat, buy menu, and radio stay on the engine bitmap font. See [INSTALL.md](INSTALL.md).
 
 ## Build
 

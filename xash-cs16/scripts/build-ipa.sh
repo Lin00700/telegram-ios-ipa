@@ -169,15 +169,20 @@ do
 	fi
 done
 
-log "menu language files"
-python3 - "$LIBSDIR/cstrike/extras.pk3" "$ROOT/lang/mainui_schinese.txt" "$ROOT/lang/mainui_tchinese.txt" <<'PY'
+log "menu language files and open menu font"
+python3 - "$LIBSDIR/cstrike/extras.pk3" "$ROOT/lang/mainui_schinese.txt" "$ROOT/lang/mainui_tchinese.txt" "$ROOT/fonts/MenuHan-Regular.ttf" "$ROOT/fonts/FONT-LICENSE.txt" <<'PY'
 import sys, zipfile
-pk3, schinese, tchinese = sys.argv[1:]
+pk3, schinese, tchinese, font, license_txt = sys.argv[1:]
 with zipfile.ZipFile(pk3, "a") as zf:
     zf.write(schinese, "resource/mainui_schinese.txt")
     zf.write(tchinese, "resource/mainui_tchinese.txt")
-print("added resource/mainui_schinese.txt and resource/mainui_tchinese.txt")
+    zf.write(font, "gfx/fonts/chinese.ttf")
+    zf.write(license_txt, "gfx/fonts/FONT-LICENSE.txt")
+print("added menu language files and gfx/fonts/chinese.ttf")
 PY
+mkdir -p "$LIBSDIR/cstrike/gfx/fonts"
+cp -f "$ROOT/fonts/MenuHan-Regular.ttf" "$LIBSDIR/cstrike/gfx/fonts/chinese.ttf"
+cp -f "$ROOT/fonts/FONT-LICENSE.txt" "$LIBSDIR/cstrike/gfx/fonts/FONT-LICENSE.txt"
 
 log "assemble .app"
 APP="$XASH_SRC/build/ios/Payload/xash3d.app"
@@ -281,7 +286,7 @@ Path(manifest).write_text(json.dumps({
     "launch": "-game cstrike -dll @yapb",
     "game_data_included": False,
     "fullscreen": "launch screen, native display size",
-    "menu_font": "cstrike/gfx/fonts/chinese.ttf",
+    "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
     "menu_language_files": [
         "resource/mainui_schinese.txt",
         "resource/mainui_tchinese.txt",
@@ -306,7 +311,8 @@ need = [
     "Info.plist",
 ]
 missing = [rel for rel in need if not any(n.endswith("/" + rel) or n.endswith(rel) for n in names)]
-banned = [n for n in names if n.lower().endswith(".bsp") or n.lower().endswith(".dll") or n.lower().endswith("chinese.ttf")]
+banned = [n for n in names if n.lower().endswith(".bsp") or n.lower().endswith(".dll")]
+font_names = [n for n in names if n.endswith("gfx/fonts/chinese.ttf")]
 info_name = next(n for n in names if n.endswith("xash3d.app/Info.plist"))
 info = plistlib.loads(ipa.read(info_name))
 has_storyboard = any("Launch.storyboardc/" in n for n in names)
@@ -319,15 +325,18 @@ if info.get("UILaunchStoryboardName") == "Launch" and not has_storyboard:
 print("launch screen", "storyboard" if has_storyboard else "plist-only")
 extras_name = next(n for n in names if n.endswith("cstrike/extras.pk3"))
 extras = zipfile.ZipFile(io.BytesIO(ipa.read(extras_name)))
-for lang in ("resource/mainui_schinese.txt", "resource/mainui_tchinese.txt"):
+for lang in ("resource/mainui_schinese.txt", "resource/mainui_tchinese.txt", "gfx/fonts/chinese.ttf", "gfx/fonts/FONT-LICENSE.txt"):
     if lang not in extras.namelist():
         print("extras.pk3 missing", lang)
         raise SystemExit(1)
+if not font_names:
+    print("IPA is missing the loose menu font")
+    raise SystemExit(1)
 if missing or banned:
     print("MISSING", missing)
     print("BANNED", banned[:20])
     raise SystemExit(1)
-print("IPA contains the CS libraries, a launch screen, menu language files, and no Valve maps or fonts")
+print("IPA contains the CS libraries, a launch screen, menu language files, the open menu font, and no Valve maps")
 for n in sorted(names):
     if n.endswith(".dylib") or n.endswith("/xash") or n.endswith(".pk3") or "storyboardc" in n:
         print(n)

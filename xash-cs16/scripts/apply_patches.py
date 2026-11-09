@@ -251,6 +251,77 @@ YAPB_LOAD_NEW = """    if (path.empty ()) {
     }"""
 
 
+GLYPHS_OLD = """void CFontManager::UploadTextureForFont(CBaseFont *font)
+{
+	// upload only latin needed for english and cyrillic needed for russian
+	// maybe it would be extended someday...
+
+	charRange_t range[] =
+	{
+	{ 0x0021, 0x007E, NULL, 0 }, // ascii printable range
+	{ 0x00C0, 0x00FF, NULL, 0 }, // latin-1 supplement (letters only)
+	{ 0x0100, 0x017F, NULL, 0 }, // latin extended a
+	{ 0x0400, 0x045F, NULL, 0 }, // cyrillic range
+	{ 0, 0, table_cp1251, V_ARRAYSIZE( table_cp1251 ) }, // cp1251
+	};
+
+	font->UploadGlyphsForRanges( range, V_ARRAYSIZE( range ) );
+}"""
+
+GLYPHS_NEW = """#include "menu_glyphs.inc"
+
+void CFontManager::UploadTextureForFont(CBaseFont *font)
+{
+	// Latin and Cyrillic stay in every face. Menu CJK is baked only into the
+	// plain faces: the blurred copies are the English glow and are not used
+	// once the labels are real strings.
+	charRange_t range[] =
+	{
+	{ 0x0021, 0x007E, NULL, 0 }, // ascii printable range
+	{ 0x00C0, 0x00FF, NULL, 0 }, // latin-1 supplement (letters only)
+	{ 0x0100, 0x017F, NULL, 0 }, // latin extended a
+	{ 0x0400, 0x045F, NULL, 0 }, // cyrillic range
+	{ 0, 0, table_cp1251, V_ARRAYSIZE( table_cp1251 ) }, // cp1251
+	{ 0, 0, NULL, 0 }, // optional menu CJK, filled below
+	};
+	int count = (int)(sizeof( range ) / sizeof( range[0] )) - 1;
+
+	if( font->m_iBlur == 0 )
+	{
+		range[count].sequence = kMenuGlyphs;
+		range[count].size = V_ARRAYSIZE( kMenuGlyphs );
+		count++;
+	}
+
+	font->UploadGlyphsForRanges( range, count );
+}"""
+
+STB_NULL_OLD = """	buf = stbtt_GetCodepointBitmap( &m_fontInfo, scale, scale, ch, &bm_width, &bm_rows, &bm_left, &bm_top );
+
+	// see where we should start rendering
+	const int pushDown = m_iAscent + bm_top;"""
+
+STB_NULL_NEW = """	buf = stbtt_GetCodepointBitmap( &m_fontInfo, scale, scale, ch, &bm_width, &bm_rows, &bm_left, &bm_top );
+	// Missing glyphs and spaces return NULL. Reading buf[0] was the signal 11 at 0x0.
+	if( !buf || bm_width <= 0 || bm_rows <= 0 )
+	{
+		if( buf )
+			stbtt_FreeBitmap( buf, m_fontInfo.userdata );
+		drawSize.w = m_iBlur * 2 + m_iOutlineSize * 2;
+		if( drawSize.w < 1 )
+			drawSize.w = 1;
+		drawSize.h = drawSize.w;
+		return;
+	}
+
+	// see where we should start rendering
+	const int pushDown = m_iAscent + bm_top;"""
+
+SOLID_OLD = "\telse if( !uiStatic.lowmemory )"
+SOLID_NEW = """\t// Chinese labels use the plain face. Blur faces are not given CJK glyphs.
+	else if( !uiStatic.lowmemory && !uiStatic.renderPicbuttonText )"""
+
+
 def replace_once(path: Path, old: str, new: str, label: str) -> None:
     text = path.read_text(encoding="utf-8")
     if new in text:
@@ -283,8 +354,13 @@ def patch_tree(xash: Path, cs16: Path) -> None:
 
     mainui = cs16 / "3rdparty/mainui_cpp"
     replace_once(mainui / "font/FontManager.cpp", FONT_OLD, FONT_NEW, "user CJK menu font")
+    glyphs = Path(__file__).resolve().parents[1] / "fonts" / "menu_glyphs.inc"
+    (mainui / "font" / "menu_glyphs.inc").write_text(glyphs.read_text(encoding="utf-8"), encoding="utf-8")
+    replace_once(mainui / "font/FontManager.cpp", GLYPHS_OLD, GLYPHS_NEW, "bake menu CJK glyphs")
+    replace_once(mainui / "font/StbFont.cpp", STB_NULL_OLD, STB_NULL_NEW, "null glyph bitmap")
     replace_once(mainui / "BaseMenu.cpp", PICBUTTON_TEXT_OLD, PICBUTTON_TEXT_NEW, "text menu buttons when a CJK font is present")
     replace_once(mainui / "controls/PicButton.cpp", STATUS_OLD, STATUS_NEW, "menu status text through the vector font")
+    replace_once(mainui / "controls/PicButton.cpp", SOLID_OLD, SOLID_NEW, "solid CJK menu labels")
 
     naming = [
         cs16 / "cmake/LibraryNaming.cmake",
