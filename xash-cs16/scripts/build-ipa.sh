@@ -169,6 +169,21 @@ do
 	fi
 done
 
+log "menu language files and open menu font"
+python3 - "$LIBSDIR/cstrike/extras.pk3" "$ROOT/lang/mainui_schinese.txt" "$ROOT/lang/mainui_tchinese.txt" "$ROOT/fonts/MenuHan-Regular.ttf" "$ROOT/fonts/FONT-LICENSE.txt" <<'PY'
+import sys, zipfile
+pk3, schinese, tchinese, font, license_txt = sys.argv[1:]
+with zipfile.ZipFile(pk3, "a") as zf:
+    zf.write(schinese, "resource/mainui_schinese.txt")
+    zf.write(tchinese, "resource/mainui_tchinese.txt")
+    zf.write(font, "gfx/fonts/chinese.ttf")
+    zf.write(license_txt, "gfx/fonts/FONT-LICENSE.txt")
+print("added menu language files and gfx/fonts/chinese.ttf")
+PY
+mkdir -p "$LIBSDIR/cstrike/gfx/fonts"
+cp -f "$ROOT/fonts/MenuHan-Regular.ttf" "$LIBSDIR/cstrike/gfx/fonts/chinese.ttf"
+cp -f "$ROOT/fonts/FONT-LICENSE.txt" "$LIBSDIR/cstrike/gfx/fonts/FONT-LICENSE.txt"
+
 log "assemble .app"
 APP="$XASH_SRC/build/ios/Payload/xash3d.app"
 rm -rf "$XASH_SRC/build/ios/Payload"
@@ -180,9 +195,37 @@ cp -R "$SDL_FRAMEWORK" "$APP/SDL2.framework"
 	./waf install --destdir="$APP"
 )
 cp "$XASH_SRC/engine/platform/ios/bundle/Info.plist" "$APP/Info.plist"
-if plutil -extract UILaunchStoryboardName raw "$APP/Info.plist" >/dev/null 2>&1; then
-	plutil -remove UILaunchStoryboardName "$APP/Info.plist"
+# iOS letterboxes an app that has no launch screen to the legacy 3:2 (320x480)
+# point size. UILaunchStoryboardName in the upstream plist points at "Launch",
+# which was not in the bundle, so older builds deleted the key.
+log "compile launch storyboard"
+set +e
+xcrun ibtool --errors --warnings --compile "$APP/Launch.storyboardc" "$ROOT/ios/Launch.storyboard"
+ibtool_status=$?
+set -e
+if [[ "$ibtool_status" -ne 0 ]]; then
+	echo "ibtool exited $ibtool_status; using the UILaunchScreen plist instead" >&2
+	rm -rf "$APP/Launch.storyboardc"
 fi
+python3 - "$APP/Info.plist" "$ibtool_status" <<'PY'
+import plistlib, sys
+path, ibtool_status = sys.argv[1:]
+with open(path, "rb") as fh:
+    info = plistlib.load(fh)
+info["UIStatusBarHidden"] = True
+info["UIViewControllerBasedStatusBarAppearance"] = False
+# iOS 14 and later size the app from this dictionary.
+info["UILaunchScreen"] = {"UIImageRespectsSafeAreaInsets": False}
+if ibtool_status == "0":
+    if info.get("UILaunchStoryboardName") != "Launch":
+        raise SystemExit("UILaunchStoryboardName is not Launch")
+else:
+    # A dangling storyboard name with no compiled file brings the letterbox back.
+    info.pop("UILaunchStoryboardName", None)
+with open(path, "wb") as fh:
+    plistlib.dump(info, fh)
+print("launch screen keys written, storyboard", "yes" if ibtool_status == "0" else "no")
+PY
 
 log "sign nested code, then the app"
 sign_one() {
@@ -224,12 +267,31 @@ rm -f "$IPA" "$DYLIBS"
 	zip -qr -X "$DYLIBS" cstrike -x '*.DS_Store'
 )
 
-python3 - "$IPA" "$XASH_REF" "$CS16_REF" "$HLSDK_REF" "$SDL_REF" "$FREETYPE_REF" "$DIST/build-manifest.json" <<'PY'
+cp "$ROOT/INSTALL.md" "$DIST/INSTALL.md"
+shasum -a 256 "$IPA" | tee "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256"
+python3 - "$DIST/INSTALL.md" "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256" <<'PY'
+import sys
+from pathlib import Path
+notes, sha_path = sys.argv[1:]
+sha = Path(sha_path).read_text(encoding="utf-8").split()[0]
+Path(notes).write_text(
+    Path(notes).read_text(encoding="utf-8")
+    + "\n## 9. 校验\n\n`xash3d-fwgs-cs16-ios-arm64.ipa` sha256:\n\n```text\n"
+    + sha
+    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v7`。控制台会打印 `CS iOS v7: server library ready`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。主菜单「联机游戏」里的「寻找服务器」是互联网服务器列表。进图后的服务器公告不再因为空正文闪退。\n",
+    encoding="utf-8",
+)
+print("INSTALL.md sha256", sha)
+PY
+
+python3 - "$IPA" "$XASH_REF" "$CS16_REF" "$HLSDK_REF" "$SDL_REF" "$FREETYPE_REF" "$DIST/build-manifest.json" "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256" <<'PY'
 import json, sys
 from pathlib import Path
-ipa, xash, cs16, hlsdk, sdl, freetype, manifest = sys.argv[1:]
+ipa, xash, cs16, hlsdk, sdl, freetype, manifest, sha_path = sys.argv[1:]
+sha = Path(sha_path).read_text(encoding="utf-8").split()[0]
 Path(manifest).write_text(json.dumps({
     "ipa": Path(ipa).name,
+    "sha256": sha,
     "xash3d_fwgs": xash,
     "cs16_client": cs16,
     "hlsdk_portable_mobile_hacks": hlsdk,
@@ -237,11 +299,18 @@ Path(manifest).write_text(json.dumps({
     "freetype": freetype,
     "launch": "-game cstrike -dll @yapb",
     "game_data_included": False,
+    "fullscreen": "launch screen, native display size",
+    "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
+    "local_server": "ios-v7: server library does not call filesystem_stdio; MOTD draw skips a null buffer; Internet game opens the server browser",
+    "menu_language_files": [
+        "resource/mainui_schinese.txt",
+        "resource/mainui_tchinese.txt",
+    ],
 }, indent=2) + "\n")
 PY
 
 python3 - "$IPA" <<'PY'
-import sys, zipfile
+import io, sys, zipfile, plistlib
 ipa = zipfile.ZipFile(sys.argv[1])
 names = ipa.namelist()
 need = [
@@ -254,16 +323,37 @@ need = [
     "valve/cl_dlls/client_ios_arm64.dylib",
     "valve/dlls/hl_ios_arm64.dylib",
     "xash",
+    "Info.plist",
 ]
-missing = [rel for rel in need if not any(n.endswith("/" + rel) for n in names)]
+missing = [rel for rel in need if not any(n.endswith("/" + rel) or n.endswith(rel) for n in names)]
 banned = [n for n in names if n.lower().endswith(".bsp") or n.lower().endswith(".dll")]
+font_names = [n for n in names if n.endswith("gfx/fonts/chinese.ttf")]
+info_name = next(n for n in names if n.endswith("xash3d.app/Info.plist"))
+info = plistlib.loads(ipa.read(info_name))
+has_storyboard = any("Launch.storyboardc/" in n for n in names)
+if "UILaunchScreen" not in info:
+    print("Info.plist has no UILaunchScreen")
+    raise SystemExit(1)
+if info.get("UILaunchStoryboardName") == "Launch" and not has_storyboard:
+    print("UILaunchStoryboardName points at a missing storyboard")
+    raise SystemExit(1)
+print("launch screen", "storyboard" if has_storyboard else "plist-only")
+extras_name = next(n for n in names if n.endswith("cstrike/extras.pk3"))
+extras = zipfile.ZipFile(io.BytesIO(ipa.read(extras_name)))
+for lang in ("resource/mainui_schinese.txt", "resource/mainui_tchinese.txt", "gfx/fonts/chinese.ttf", "gfx/fonts/FONT-LICENSE.txt"):
+    if lang not in extras.namelist():
+        print("extras.pk3 missing", lang)
+        raise SystemExit(1)
+if not font_names:
+    print("IPA is missing the loose menu font")
+    raise SystemExit(1)
 if missing or banned:
     print("MISSING", missing)
     print("BANNED", banned[:20])
     raise SystemExit(1)
-print("IPA contains the CS libraries and no Valve maps or original dlls")
+print("IPA contains the CS libraries, a launch screen, menu language files, the open menu font, and no Valve maps")
 for n in sorted(names):
-    if n.endswith(".dylib") or n.endswith("/xash") or n.endswith(".pk3"):
+    if n.endswith(".dylib") or n.endswith("/xash") or n.endswith(".pk3") or "storyboardc" in n:
         print(n)
 PY
 
