@@ -269,6 +269,20 @@ rm -f "$IPA" "$DYLIBS"
 
 cp "$ROOT/INSTALL.md" "$DIST/INSTALL.md"
 shasum -a 256 "$IPA" | tee "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256"
+python3 - "$DIST/INSTALL.md" "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256" <<'PY'
+import sys
+from pathlib import Path
+notes, sha_path = sys.argv[1:]
+sha = Path(sha_path).read_text(encoding="utf-8").split()[0]
+Path(notes).write_text(
+    Path(notes).read_text(encoding="utf-8")
+    + "\n## 9. 校验\n\n`xash3d-fwgs-cs16-ios-arm64.ipa` sha256:\n\n```text\n"
+    + sha
+    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v5`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。\n",
+    encoding="utf-8",
+)
+print("INSTALL.md sha256", sha)
+PY
 
 python3 - "$IPA" "$XASH_REF" "$CS16_REF" "$HLSDK_REF" "$SDL_REF" "$FREETYPE_REF" "$DIST/build-manifest.json" "$DIST/xash3d-fwgs-cs16-ios-arm64.ipa.sha256" <<'PY'
 import json, sys
@@ -287,7 +301,7 @@ Path(manifest).write_text(json.dumps({
     "game_data_included": False,
     "fullscreen": "launch screen, native display size",
     "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
-    "local_server": "FileExists uses the engine when filesystem_stdio is absent",
+    "local_server": "ios-v5: server library does not call filesystem_stdio",
     "menu_language_files": [
         "resource/mainui_schinese.txt",
         "resource/mainui_tchinese.txt",

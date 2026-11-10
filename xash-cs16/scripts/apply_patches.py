@@ -313,6 +313,42 @@ FS_IMPL_OLD = """void FileSystem_Shutdown()
 	}
 }"""
 
+FS_INIT_OLD = """bool FileSystem_Init()
+{
+	g_pFileSystemModule = Sys_LoadModule(STDIO_FILESYSTEM_LIB);
+	if (!g_pFileSystemModule)
+	{
+		return false;
+	}
+
+	// Get FileSystem interface
+	CreateInterfaceFn filesystemFactoryFn = Sys_GetFactory(g_pFileSystemModule);
+	if (!filesystemFactoryFn)
+	{
+		Sys_Error("Unable to get filesystem factory.");
+	}
+
+	g_pFileSystem = (IFileSystem *)filesystemFactoryFn(FILESYSTEM_INTERFACE_VERSION, nullptr);
+	if (!g_pFileSystem)
+	{
+		Sys_Error("Can not retrive filesystem interface version '" FILESYSTEM_INTERFACE_VERSION "'.");
+	}
+
+	return true;
+}"""
+
+FS_INIT_NEW = """bool FileSystem_Init()
+{
+	// ios-v5: do not dlopen filesystem_stdio. The working directory is the
+	// Documents folder, so the copy inside the .app is missed and this
+	// pointer stays null. If a copy does load, its GoldSrc search path was
+	// never mounted and FileExists still faults at address 0. Callers ask
+	// the engine, which already has the game files open.
+	g_pFileSystem = nullptr;
+	g_pFileSystemModule = nullptr;
+	return false;
+}"""
+
 FS_IMPL_NEW = """void FileSystem_Shutdown()
 {
 	if (g_pFileSystemModule)
@@ -330,24 +366,165 @@ bool FileSystem_Exists(const char *filename)
 	if (!filename || !filename[0])
 		return false;
 
-	if (g_pFileSystem)
-		return g_pFileSystem->FileExists(filename);
-
-	// Xash on iOS never ships filesystem_stdio. The CS bot phrase loader
-	// still asks FileExists while a listen server is starting, and a
-	// virtual call through the null pointer is signal 11 at 0x0.
-	// Compare the path with itself: the engine returns success only when
-	// that file is in the game search path.
+	// Never call g_pFileSystem. A non-null pointer here is still the
+	// unmounted GoldSrc interface, and the virtual call is signal 11 at 0x0.
 	for (i = 0; filename[i] && i + 1 < sizeof(fixed); ++i)
 		fixed[i] = (filename[i] == '\\\\') ? '/' : filename[i];
 	fixed[i] = '\\0';
 
-	if (!g_engfuncs.pfnCompareFileTime)
-		return false;
+	if (g_engfuncs.pfnGetFileSize)
+		return g_engfuncs.pfnGetFileSize(fixed) >= 0;
 
-	int cmp = 0;
-	return g_engfuncs.pfnCompareFileTime(fixed, fixed, &cmp) != 0;
+	if (g_engfuncs.pfnLoadFileForMe && g_engfuncs.pfnFreeFile)
+	{
+		int length = 0;
+		void *buf = g_engfuncs.pfnLoadFileForMe(fixed, &length);
+		if (!buf)
+			return false;
+		g_engfuncs.pfnFreeFile(buf);
+		return true;
+	}
+
+	return false;
 }"""
+
+GIVEFN_OLD = """	Q_memcpy(&g_engfuncs, pEnginefuncsTable, sizeof(enginefuncs_t));
+	gpGlobals = pGlobals;
+
+	FileSystem_Init();
+}"""
+
+GIVEFN_NEW = """	Q_memcpy(&g_engfuncs, pEnginefuncsTable, sizeof(enginefuncs_t));
+	gpGlobals = pGlobals;
+
+	FileSystem_Init();
+	if (g_engfuncs.pfnServerPrint)
+		g_engfuncs.pfnServerPrint("CS iOS v5: server library ready\\n");
+}"""
+
+RANDOMIZE_OLD = """void BotPhrase::Randomize()
+{
+	for (size_t i = 0; i < m_voiceBank.size(); i++)
+	{
+#ifdef __APPLE__
+		std::random_device rd {};
+		std::mt19937 mt {rd()};
+
+		std::shuffle(m_voiceBank[i]->begin(), m_voiceBank[i]->end(), mt);
+#else
+		std::random_shuffle(m_voiceBank[i]->begin(), m_voiceBank[i]->end());
+#endif
+	}
+}"""
+
+RANDOMIZE_NEW = """void BotPhrase::Randomize()
+{
+	// ios-v5: std::random_device is the Apple-only shuffle used when a
+	// listen server restarts the round, immediately after the map loads.
+	// Shuffle with the engine RNG instead.
+	for (size_t i = 0; i < m_voiceBank.size(); i++)
+	{
+		BotSpeakableVector *bank = m_voiceBank[i];
+		size_t n;
+
+		if (!bank)
+			continue;
+		n = bank->size();
+		while (n > 1)
+		{
+			size_t j = (size_t)RANDOM_LONG(0, (int)n - 1);
+			BotSpeakable *swap;
+
+			n--;
+			if (j > n)
+				j = n;
+			swap = (*bank)[n];
+			(*bank)[n] = (*bank)[j];
+			(*bank)[j] = swap;
+		}
+	}
+}"""
+
+WAVE_BOT_OLD = "speak->m_duration = (double)GET_APPROX_WAVE_PLAY_LEN(compositeFilename) / 1000.0f;"
+WAVE_BOT_NEW = """speak->m_duration = 1.0f;
+			if (g_engfuncs.pfnGetApproxWavePlayLen)
+				speak->m_duration = (double)g_engfuncs.pfnGetApproxWavePlayLen(compositeFilename) / 1000.0f;"""
+
+WAVE_HOSTAGE_OLD = "chatter->file[chatter->count].duration = (double)GET_APPROX_WAVE_PLAY_LEN(actualFilename) / 1000.0;"
+WAVE_HOSTAGE_NEW = """chatter->file[chatter->count].duration = 1.0;
+	if (g_engfuncs.pfnGetApproxWavePlayLen)
+		chatter->file[chatter->count].duration = (double)g_engfuncs.pfnGetApproxWavePlayLen(actualFilename) / 1000.0;"""
+
+CRASH_VER_OLD = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\\n",
+		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
+
+CRASH_VER_NEW = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s) ios-v5\\n",
+		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
+
+CRASH_BT_OLD = """	ssize_t unused = write( STDERR_FILENO, crash_message, len );"""
+
+CRASH_BT_NEW = """#if XASH_APPLE
+	{
+		struct ios_bt frames = { 0 };
+		_Unwind_Backtrace( IOS_CrashUnwind, &frames );
+		for( int i = 0; i < frames.n && len < (int)sizeof( crash_message ) - 128; i++ )
+		{
+			Dl_info info;
+			const char *sym = "?";
+			const char *mod = "";
+			const char *base;
+			int wrote;
+
+			memset( &info, 0, sizeof( info ));
+			if( dladdr( frames.pc[i], &info ))
+			{
+				if( info.dli_sname )
+					sym = info.dli_sname;
+				if( info.dli_fname )
+				{
+					mod = info.dli_fname;
+					base = strrchr( mod, '/' );
+					if( base && base[1] )
+						mod = base + 1;
+				}
+			}
+			wrote = Q_snprintf( crash_message + len, sizeof( crash_message ) - len,
+				"%2d: %p %s (%s)\\n", i, frames.pc[i], sym, mod );
+			if( wrote < 0 || len + wrote >= (int)sizeof( crash_message ))
+				break;
+			len += wrote;
+		}
+	}
+#endif
+	ssize_t unused = write( STDERR_FILENO, crash_message, len );"""
+
+CRASH_SETUP_OLD = """#if HAVE_LIBBACKTRACE
+	have_libbacktrace = Sys_SetupLibbacktrace( argv0 );
+#endif // HAVE_LIBBACKTRACE"""
+
+CRASH_SETUP_NEW = """#if HAVE_LIBBACKTRACE && !XASH_APPLE
+	have_libbacktrace = Sys_SetupLibbacktrace( argv0 );
+#endif // HAVE_LIBBACKTRACE && !XASH_APPLE"""
+
+CRASH_HELPER_OLD = """static qboolean have_libbacktrace = false;
+static char crash_message[8192];"""
+
+CRASH_HELPER_NEW = """static qboolean have_libbacktrace = false;
+static char crash_message[8192];
+
+#if XASH_APPLE
+#include <unwind.h>
+#include <dlfcn.h>
+#include <string.h>
+struct ios_bt { void *pc[24]; int n; };
+static _Unwind_Reason_Code IOS_CrashUnwind( struct _Unwind_Context *ctx, void *arg )
+{
+	struct ios_bt *bt = arg;
+	if( bt->n < 24 )
+		bt->pc[bt->n++] = (void *)_Unwind_GetIP( ctx );
+	return _URC_NO_REASON;
+}
+#endif"""
 
 STB_NULL_OLD = """	buf = stbtt_GetCodepointBitmap( &m_fontInfo, scale, scale, ch, &bm_width, &bm_rows, &bm_left, &bm_top );
 
@@ -417,10 +594,21 @@ def patch_tree(xash: Path, cs16: Path) -> None:
 
     regamedll = cs16 / "3rdparty/ReGameDLL_CS/regamedll"
     replace_once(regamedll / "public/FileSystem.h", FS_DECL_OLD, FS_DECL_NEW, "engine file exists declaration")
+    replace_once(regamedll / "public/FileSystem.cpp", FS_INIT_OLD, FS_INIT_NEW, "do not load filesystem_stdio")
     replace_once(regamedll / "public/FileSystem.cpp", FS_IMPL_OLD, FS_IMPL_NEW, "engine file exists when filesystem_stdio is absent")
+    replace_once(regamedll / "dlls/h_export.cpp", GIVEFN_OLD, GIVEFN_NEW, "ios-v5 server ready log")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(model)", "FileSystem_Exists(model)", "hostage model exists")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(actualFilename)", "FileSystem_Exists(actualFilename)", "hostage chatter exists")
+    replace_once(regamedll / "dlls/hostage/hostage.cpp", WAVE_HOSTAGE_OLD, WAVE_HOSTAGE_NEW, "hostage wave length")
     replace_once(regamedll / "dlls/bot/cs_bot_chatter.cpp", "g_pFileSystem->FileExists(filePath)", "FileSystem_Exists(filePath)", "bot chatter exists")
+    replace_once(regamedll / "dlls/bot/cs_bot_chatter.cpp", WAVE_BOT_OLD, WAVE_BOT_NEW, "bot wave length")
+    replace_once(regamedll / "dlls/bot/cs_bot_chatter.cpp", RANDOMIZE_OLD, RANDOMIZE_NEW, "bot phrase shuffle")
+
+    crash = xash / "engine/platform/posix/crash_posix.c"
+    replace_once(crash, CRASH_HELPER_OLD, CRASH_HELPER_NEW, "ios crash frame buffer")
+    replace_once(crash, CRASH_VER_OLD, CRASH_VER_NEW, "ios-v5 crash version")
+    replace_once(crash, CRASH_BT_OLD, CRASH_BT_NEW, "ios crash frames")
+    replace_once(crash, CRASH_SETUP_OLD, CRASH_SETUP_NEW, "skip dwarf-only backtrace on iOS")
 
     naming = [
         cs16 / "cmake/LibraryNaming.cmake",

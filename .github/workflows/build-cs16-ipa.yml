@@ -56,6 +56,6 @@ jobs:
             echo "The artifact contains \`xash3d-fwgs-cs16-ios-arm64.ipa\`, its sha256, INSTALL.md, and a zip of the CS libraries."
             echo "It does not contain Steam \`valve\` or \`cstrike\` game data. The menu font is a subset of WenQuanYi Micro Hei (Apache-2.0 / GPL-3), not a Valve font."
             echo "Default launch options: \`-game cstrike -dll @yapb\`. A Chinese phone also shows \`-language schinese\` or \`-language tchinese\`, and the main menu is Simplified or Traditional Chinese."
-            echo "Offline bots: 联机游戏, then 创建服务器. The listen server no longer calls a null filesystem while loading bot chatter."
+            echo "Offline bots: 联机游戏, 本地开一局, then 创建服务器. ios-v5 does not call filesystem_stdio. The crash dialog version line ends with ios-v5."
             echo "Resign the IPA with 全能签. See INSTALL.md in the artifact."
           } >> "$GITHUB_STEP_SUMMARY"
