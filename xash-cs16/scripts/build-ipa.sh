@@ -278,7 +278,7 @@ Path(notes).write_text(
     Path(notes).read_text(encoding="utf-8")
     + "\n## 9. 校验\n\n`xash3d-fwgs-cs16-ios-arm64.ipa` sha256:\n\n```text\n"
     + sha
-    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v5`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。\n",
+    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v6`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。进图后的服务器公告不再因为空正文闪退。\n",
     encoding="utf-8",
 )
 print("INSTALL.md sha256", sha)
@@ -301,7 +301,7 @@ Path(manifest).write_text(json.dumps({
     "game_data_included": False,
     "fullscreen": "launch screen, native display size",
     "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
-    "local_server": "ios-v5: server library does not call filesystem_stdio",
+    "local_server": "ios-v6: server library does not call filesystem_stdio; MOTD draw skips a null buffer",
     "menu_language_files": [
         "resource/mainui_schinese.txt",
         "resource/mainui_tchinese.txt",

@@ -399,7 +399,7 @@ GIVEFN_NEW = """	Q_memcpy(&g_engfuncs, pEnginefuncsTable, sizeof(enginefuncs_t))
 
 	FileSystem_Init();
 	if (g_engfuncs.pfnServerPrint)
-		g_engfuncs.pfnServerPrint("CS iOS v5: server library ready\\n");
+		g_engfuncs.pfnServerPrint("CS iOS v6: server library ready\\n");
 }"""
 
 RANDOMIZE_OLD = """void BotPhrase::Randomize()
@@ -458,7 +458,7 @@ WAVE_HOSTAGE_NEW = """chatter->file[chatter->count].duration = 1.0;
 CRASH_VER_OLD = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\\n",
 		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
 
-CRASH_VER_NEW = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s) ios-v5\\n",
+CRASH_VER_NEW = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s) ios-v6\\n",
 		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
 
 CRASH_BT_OLD = """	ssize_t unused = write( STDERR_FILENO, crash_message, len );"""
@@ -551,6 +551,262 @@ SOLID_OLD = "\telse if( !uiStatic.lowmemory )"
 SOLID_NEW = """\t// Chinese labels use the plain face. Blur faces are not given CJK glyphs.
 	else if( !uiStatic.lowmemory && !uiStatic.renderPicbuttonText )"""
 
+# CHudMOTD::Draw reads m_szMOTD.Access(), which is NULL after Clear().
+# MsgFunc used to Reset() an HTML motd and then still set HUD_DRAW.
+MOTD_CVAR_OLD = """\tif( cl_hide_motd->value )
+\t\treturn 1;"""
+
+MOTD_CVAR_NEW = """\tif( cl_hide_motd && cl_hide_motd->value )
+\t\treturn 1;"""
+
+MOTD_HIDE_OLD = """\tif( cl_hide_motd->value )
+\t{
+\t\tReset();
+\t\treturn 1;
+\t}"""
+
+MOTD_HIDE_NEW = """\t// Access() is NULL once the text is cleared. A missing cvar is the same
+\t// class of read: the first match frame faults at address 0.
+\tif( !cl_hide_motd || cl_hide_motd->value || !m_szMOTD.Access() )
+\t{
+\t\tReset();
+\t\treturn 1;
+\t}
+
+\t// Filled rectangle plus glyph drawing. A null engine call is signal 11 at 0x0.
+\tif( !gEngfuncs.pfnFillRGBA || !gEngfuncs.pfnFillRGBABlend || !gEngfuncs.pfnDrawCharacter )
+\t{
+\t\tReset();
+\t\treturn 1;
+\t}"""
+
+MOTD_WHILE_OLD = "\twhile ( *ch )"
+MOTD_WHILE_NEW = "\twhile ( ch && *ch )"
+
+MOTD_NL_OLD = "\t\tif ( *ch == '\\n' )"
+MOTD_NL_NEW = "\t\tif ( ch && *ch == '\\n' )"
+
+MOTD_HTML_OLD = """\t// we still don't support html tags in motd :(
+\tif( strcasestr( m_szMOTD.String(), "<!DOCTYPE HTML>" ) )
+\t{
+\t\tReset();
+\t\tignoreThisMotd = true;
+\t}
+
+\tif ( is_finished )
+\t{
+\t\tint length = 0;
+\t\t
+\t\tm_iMaxLength = 0;
+\t\tm_iFlags |= HUD_DRAW;
+
+
+\t\tfor ( const char *sz = m_szMOTD.String(); *sz != 0; sz++ )  // count the number of lines in the MOTD
+\t\t{
+\t\t\tif ( *sz == '\\n' )
+\t\t\t{
+\t\t\t\tm_iLines++;
+\t\t\t\tif( length > m_iMaxLength )
+\t\t\t\t{
+\t\t\t\t\tm_iMaxLength = length;
+\t\t\t\t\tlength = 0;
+\t\t\t\t}
+\t\t\t}
+\t\t\tlength++;
+\t\t}
+\t\t
+\t\tm_iLines++;
+\t\tif( length > m_iMaxLength )
+\t\t{
+\t\t\tm_iMaxLength = length;
+\t\t\tlength = 0;
+\t\t}
+\t\tm_bShow = true;
+\t}"""
+
+MOTD_HTML_NEW = """\t// motd.txt shipped with CS is HTML. This panel can only draw plain text.
+\t// Reset() frees the buffer (Access() becomes NULL). The old code then
+\t// fell through and, on the last chunk, turned drawing back on. The next
+\t// frame read that NULL pointer: signal 11 at 0x0 in CHudMOTD::Draw.
+\t{
+\t\tconst char *motd = m_szMOTD.String();
+\t\tif( !motd[0]
+\t\t\t|| strcasestr( motd, "<!doctype" )
+\t\t\t|| strcasestr( motd, "<html" )
+\t\t\t|| strcasestr( motd, "<head" )
+\t\t\t|| strcasestr( motd, "<body" ) )
+\t\t{
+\t\t\tReset();
+\t\t\tignoreThisMotd = true;
+\t\t\treturn 1;
+\t\t}
+\t}
+
+\tif ( is_finished && m_szMOTD.Access() )
+\t{
+\t\tint length = 0;
+
+\t\tm_iMaxLength = 0;
+\t\tm_iFlags |= HUD_DRAW;
+
+\t\tfor ( const char *sz = m_szMOTD.String(); *sz != 0; sz++ )  // count the number of lines in the MOTD
+\t\t{
+\t\t\tif ( *sz == '\\n' )
+\t\t\t{
+\t\t\t\tm_iLines++;
+\t\t\t\tif( length > m_iMaxLength )
+\t\t\t\t{
+\t\t\t\t\tm_iMaxLength = length;
+\t\t\t\t\tlength = 0;
+\t\t\t\t}
+\t\t\t}
+\t\t\tlength++;
+\t\t}
+
+\t\tm_iLines++;
+\t\tif( length > m_iMaxLength )
+\t\t{
+\t\t\tm_iMaxLength = length;
+\t\t\tlength = 0;
+\t\t}
+\t\tm_bShow = true;
+\t}"""
+
+FILL_OLD = """#define FillRGBA (*gEngfuncs.pfnFillRGBA)
+#define FillRGBABlend (*gEngfuncs.pfnFillRGBABlend)"""
+
+FILL_NEW = """// Null engine pointers are signal 11 at 0x0. MOTD, the crosshair, the
+// round timer, and the ammo divider all fill rectangles on early frames.
+static inline void FillRGBA( int x, int y, int w, int h, int r, int g, int b, int a )
+{
+\tif( gEngfuncs.pfnFillRGBA )
+\t\tgEngfuncs.pfnFillRGBA( x, y, w, h, r, g, b, a );
+}
+static inline void FillRGBABlend( int x, int y, int w, int h, int r, int g, int b, int a )
+{
+\tif( gEngfuncs.pfnFillRGBABlend )
+\t\tgEngfuncs.pfnFillRGBABlend( x, y, w, h, r, g, b, a );
+}"""
+
+DRAWCHAR_OLD = """\t\tint ret;
+\t\tif( scale && g_iMobileAPIVersion )
+\t\t\tret = gMobileAPI.pfnDrawScaledCharacter( x, y, number, r, g, b, scale ) / gHUD.m_flScale;
+\t\telse
+\t\t\tret = gEngfuncs.pfnDrawCharacter( x, y, number, r, g, b );
+\t\treturn ret;"""
+
+DRAWCHAR_NEW = """\t\tint ret = 0;
+\t\tif( scale && g_iMobileAPIVersion )
+\t\t{
+\t\t\tif( gMobileAPI.pfnDrawScaledCharacter && gHUD.m_flScale != 0.0f )
+\t\t\t\tret = gMobileAPI.pfnDrawScaledCharacter( x, y, number, r, g, b, scale ) / gHUD.m_flScale;
+\t\t}
+\t\telse if( gEngfuncs.pfnDrawCharacter )
+\t\t\tret = gEngfuncs.pfnDrawCharacter( x, y, number, r, g, b );
+\t\treturn ret;"""
+
+HUDSTR_OLD = """\tchar *szIt = (char *)str;
+
+\tCon_UtfProcessChar( 0 );
+
+\t// draw the string until we hit the null character or a newline character
+\tfor ( ; *szIt != 0 && *szIt != '\\n'; szIt++ )"""
+
+HUDSTR_NEW = """\tchar *szIt = (char *)str;
+
+\t// MOTD and center-print pass a missing string through here.
+\tif( !szIt )
+\t\treturn xpos;
+
+\tCon_UtfProcessChar( 0 );
+
+\t// draw the string until we hit the null character or a newline character
+\tfor ( ; *szIt != 0 && *szIt != '\\n'; szIt++ )"""
+
+HUDREV_OLD = """int DrawUtils::DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b, float scale )
+{
+\tint first_xpos = xpos;"""
+
+HUDREV_NEW = """int DrawUtils::DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b, float scale )
+{
+\tif( !szString )
+\t\treturn xpos;
+
+\tint first_xpos = xpos;"""
+
+HEALTH_OLD = "\t\tint idx = gEngfuncs.GetLocalPlayer()->index;"
+HEALTH_NEW = """\t\t// The suit bit can be set before the local entity exists. index is
+\t\t// the first field, so a NULL player is a read at address 0.
+\t\tauto player = gEngfuncs.GetLocalPlayer ? gEngfuncs.GetLocalPlayer() : nullptr;
+\t\tint idx = player ? player->index : 0;"""
+
+RADAR_OLD = """\tif( bUseRenderAPI )
+\t{
+\t\tgEngfuncs.pTriAPI->RenderMode( kRenderTransAdd );"""
+
+RADAR_NEW = """\tif( bUseRenderAPI && gEngfuncs.pTriAPI )
+\t{
+\t\tgEngfuncs.pTriAPI->RenderMode( kRenderTransAdd );"""
+
+RADAR_TEX_OLD = """\tgRenderAPI.GL_Bind( 0, texHandle );
+
+\t// gEngfuncs.pTriAPI->Begin( TRI_QUADS );
+
+\tgEngfuncs.pTriAPI->Color4ub( r, g, b, a );"""
+
+RADAR_TEX_NEW = """\tif( !gEngfuncs.pTriAPI || !gRenderAPI.GL_Bind )
+\t\treturn;
+
+\tgRenderAPI.GL_Bind( 0, texHandle );
+
+\t// gEngfuncs.pTriAPI->Begin( TRI_QUADS );
+
+\tgEngfuncs.pTriAPI->Color4ub( r, g, b, a );"""
+
+QUAD_OLD = """\t// REMOVE WHEN NANOGL BUG WILL BE FIXED
+\tgEngfuncs.pTriAPI->Begin( TRI_QUADS );
+\t// REMOVE WHEN NANOGL BUG WILL BE FIXED"""
+
+QUAD_NEW = """\tif( !gEngfuncs.pTriAPI || !gEngfuncs.pTriAPI->Begin )
+\t\treturn;
+
+\t// REMOVE WHEN NANOGL BUG WILL BE FIXED
+\tgEngfuncs.pTriAPI->Begin( TRI_QUADS );
+\t// REMOVE WHEN NANOGL BUG WILL BE FIXED"""
+
+CHARSET_OLD = """\tif( !stricmp( con_charset->string, "cp1251" ))
+\t{
+\t\tg_codepage = 1251;
+\t}
+\telse if( !stricmp( con_charset->string, "cp1252" ))
+\t{
+\t\tg_codepage = 1252;
+\t}
+\telse
+\t{
+\t\tg_codepage = 0;
+\t}
+
+\tg_accept_utf8 = !stricmp( cl_charset->string, "utf-8" );"""
+
+CHARSET_NEW = """\tconst char *con_name = (con_charset && con_charset->string) ? con_charset->string : "";
+\tconst char *cl_name = (cl_charset && cl_charset->string) ? cl_charset->string : "";
+
+\tif( !stricmp( con_name, "cp1251" ))
+\t{
+\t\tg_codepage = 1251;
+\t}
+\telse if( !stricmp( con_name, "cp1252" ))
+\t{
+\t\tg_codepage = 1252;
+\t}
+\telse
+\t{
+\t\tg_codepage = 0;
+\t}
+
+\tg_accept_utf8 = !stricmp( cl_name, "utf-8" );"""
+
 
 def replace_once(path: Path, old: str, new: str, label: str) -> None:
     text = path.read_text(encoding="utf-8")
@@ -592,11 +848,27 @@ def patch_tree(xash: Path, cs16: Path) -> None:
     replace_once(mainui / "controls/PicButton.cpp", STATUS_OLD, STATUS_NEW, "menu status text through the vector font")
     replace_once(mainui / "controls/PicButton.cpp", SOLID_OLD, SOLID_NEW, "solid CJK menu labels")
 
+    motd = cs16 / "cl_dll/hud/MOTD.cpp"
+    replace_once(motd, MOTD_CVAR_OLD, MOTD_CVAR_NEW, "motd hide cvar")
+    replace_once(motd, MOTD_HIDE_OLD, MOTD_HIDE_NEW, "motd null text and missing draw calls")
+    replace_once(motd, MOTD_WHILE_OLD, MOTD_WHILE_NEW, "motd walk stops on a null buffer")
+    replace_once(motd, MOTD_NL_OLD, MOTD_NL_NEW, "motd newline restore")
+    replace_once(motd, MOTD_HTML_OLD, MOTD_HTML_NEW, "motd html does not enable drawing")
+    replace_once(cs16 / "cl_dll/cl_util.h", FILL_OLD, FILL_NEW, "null-safe rectangle fill")
+    replace_once(cs16 / "cl_dll/include/draw_util.h", DRAWCHAR_OLD, DRAWCHAR_NEW, "null-safe glyph draw")
+    replace_once(cs16 / "cl_dll/draw_util.cpp", HUDSTR_OLD, HUDSTR_NEW, "null hud string")
+    replace_once(cs16 / "cl_dll/draw_util.cpp", HUDREV_OLD, HUDREV_NEW, "null reversed hud string")
+    replace_once(cs16 / "cl_dll/draw_util.cpp", QUAD_OLD, QUAD_NEW, "null triangle api quad")
+    replace_once(cs16 / "cl_dll/health.cpp", HEALTH_OLD, HEALTH_NEW, "null local player on the health bar")
+    replace_once(cs16 / "cl_dll/hud/radar.cpp", RADAR_OLD, RADAR_NEW, "null triangle api on the radar")
+    replace_once(cs16 / "cl_dll/hud/radar.cpp", RADAR_TEX_OLD, RADAR_TEX_NEW, "null radar texture draw")
+    replace_once(cs16 / "cl_dll/hud_redraw.cpp", CHARSET_OLD, CHARSET_NEW, "null charset cvar on the first frame")
+
     regamedll = cs16 / "3rdparty/ReGameDLL_CS/regamedll"
     replace_once(regamedll / "public/FileSystem.h", FS_DECL_OLD, FS_DECL_NEW, "engine file exists declaration")
     replace_once(regamedll / "public/FileSystem.cpp", FS_INIT_OLD, FS_INIT_NEW, "do not load filesystem_stdio")
     replace_once(regamedll / "public/FileSystem.cpp", FS_IMPL_OLD, FS_IMPL_NEW, "engine file exists when filesystem_stdio is absent")
-    replace_once(regamedll / "dlls/h_export.cpp", GIVEFN_OLD, GIVEFN_NEW, "ios-v5 server ready log")
+    replace_once(regamedll / "dlls/h_export.cpp", GIVEFN_OLD, GIVEFN_NEW, "ios-v6 server ready log")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(model)", "FileSystem_Exists(model)", "hostage model exists")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(actualFilename)", "FileSystem_Exists(actualFilename)", "hostage chatter exists")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", WAVE_HOSTAGE_OLD, WAVE_HOSTAGE_NEW, "hostage wave length")
@@ -606,7 +878,7 @@ def patch_tree(xash: Path, cs16: Path) -> None:
 
     crash = xash / "engine/platform/posix/crash_posix.c"
     replace_once(crash, CRASH_HELPER_OLD, CRASH_HELPER_NEW, "ios crash frame buffer")
-    replace_once(crash, CRASH_VER_OLD, CRASH_VER_NEW, "ios-v5 crash version")
+    replace_once(crash, CRASH_VER_OLD, CRASH_VER_NEW, "ios-v6 crash version")
     replace_once(crash, CRASH_BT_OLD, CRASH_BT_NEW, "ios crash frames")
     replace_once(crash, CRASH_SETUP_OLD, CRASH_SETUP_NEW, "skip dwarf-only backtrace on iOS")
 
