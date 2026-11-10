@@ -278,7 +278,7 @@ Path(notes).write_text(
     Path(notes).read_text(encoding="utf-8")
     + "\n## 9. 校验\n\n`xash3d-fwgs-cs16-ios-arm64.ipa` sha256:\n\n```text\n"
     + sha
-    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v6`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。进图后的服务器公告不再因为空正文闪退。\n",
+    + "\n```\n\n闪退对话框版本行末尾应是 `ios-v7`。控制台会打印 `CS iOS v7: server library ready`。覆盖安装，包名 `su.xash.engine`，已拷进「文件」的 `valve` 和 `cstrike` 留着。主菜单「联机游戏」里的「寻找服务器」是互联网服务器列表。进图后的服务器公告不再因为空正文闪退。\n",
     encoding="utf-8",
 )
 print("INSTALL.md sha256", sha)
@@ -301,7 +301,7 @@ Path(manifest).write_text(json.dumps({
     "game_data_included": False,
     "fullscreen": "launch screen, native display size",
     "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
-    "local_server": "ios-v6: server library does not call filesystem_stdio; MOTD draw skips a null buffer",
+    "local_server": "ios-v7: server library does not call filesystem_stdio; MOTD draw skips a null buffer; Internet game opens the server browser",
     "menu_language_files": [
         "resource/mainui_schinese.txt",
         "resource/mainui_tchinese.txt",

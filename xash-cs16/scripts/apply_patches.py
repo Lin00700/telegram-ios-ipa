@@ -399,7 +399,7 @@ GIVEFN_NEW = """	Q_memcpy(&g_engfuncs, pEnginefuncsTable, sizeof(enginefuncs_t))
 
 	FileSystem_Init();
 	if (g_engfuncs.pfnServerPrint)
-		g_engfuncs.pfnServerPrint("CS iOS v6: server library ready\\n");
+		g_engfuncs.pfnServerPrint("CS iOS v7: server library ready\\n");
 }"""
 
 RANDOMIZE_OLD = """void BotPhrase::Randomize()
@@ -458,7 +458,7 @@ WAVE_HOSTAGE_NEW = """chatter->file[chatter->count].duration = 1.0;
 CRASH_VER_OLD = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\\n",
 		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
 
-CRASH_VER_NEW = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s) ios-v6\\n",
+CRASH_VER_NEW = """	int len = Q_snprintf( crash_message, sizeof( crash_message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s) ios-v7\\n",
 		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );"""
 
 CRASH_BT_OLD = """	ssize_t unused = write( STDERR_FILENO, crash_message, len );"""
@@ -868,7 +868,7 @@ def patch_tree(xash: Path, cs16: Path) -> None:
     replace_once(regamedll / "public/FileSystem.h", FS_DECL_OLD, FS_DECL_NEW, "engine file exists declaration")
     replace_once(regamedll / "public/FileSystem.cpp", FS_INIT_OLD, FS_INIT_NEW, "do not load filesystem_stdio")
     replace_once(regamedll / "public/FileSystem.cpp", FS_IMPL_OLD, FS_IMPL_NEW, "engine file exists when filesystem_stdio is absent")
-    replace_once(regamedll / "dlls/h_export.cpp", GIVEFN_OLD, GIVEFN_NEW, "ios-v6 server ready log")
+    replace_once(regamedll / "dlls/h_export.cpp", GIVEFN_OLD, GIVEFN_NEW, "ios-v7 server ready log")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(model)", "FileSystem_Exists(model)", "hostage model exists")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(actualFilename)", "FileSystem_Exists(actualFilename)", "hostage chatter exists")
     replace_once(regamedll / "dlls/hostage/hostage.cpp", WAVE_HOSTAGE_OLD, WAVE_HOSTAGE_NEW, "hostage wave length")
@@ -878,7 +878,7 @@ def patch_tree(xash: Path, cs16: Path) -> None:
 
     crash = xash / "engine/platform/posix/crash_posix.c"
     replace_once(crash, CRASH_HELPER_OLD, CRASH_HELPER_NEW, "ios crash frame buffer")
-    replace_once(crash, CRASH_VER_OLD, CRASH_VER_NEW, "ios-v6 crash version")
+    replace_once(crash, CRASH_VER_OLD, CRASH_VER_NEW, "ios-v7 crash version")
     replace_once(crash, CRASH_BT_OLD, CRASH_BT_NEW, "ios crash frames")
     replace_once(crash, CRASH_SETUP_OLD, CRASH_SETUP_NEW, "skip dwarf-only backtrace on iOS")
 
