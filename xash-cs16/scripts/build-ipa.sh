@@ -287,6 +287,7 @@ Path(manifest).write_text(json.dumps({
     "game_data_included": False,
     "fullscreen": "launch screen, native display size",
     "menu_font": "WenQuanYi Micro Hei subset at gfx/fonts/chinese.ttf",
+    "local_server": "FileExists uses the engine when filesystem_stdio is absent",
     "menu_language_files": [
         "resource/mainui_schinese.txt",
         "resource/mainui_tchinese.txt",

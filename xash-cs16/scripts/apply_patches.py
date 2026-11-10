@@ -296,6 +296,59 @@ void CFontManager::UploadTextureForFont(CBaseFont *font)
 	font->UploadGlyphsForRanges( range, count );
 }"""
 
+FS_DECL_OLD = """bool FileSystem_Init();
+void FileSystem_Shutdown();"""
+
+FS_DECL_NEW = """bool FileSystem_Init();
+void FileSystem_Shutdown();
+// Null-safe existence check. iOS has no filesystem_stdio dylib.
+bool FileSystem_Exists(const char *filename);"""
+
+FS_IMPL_OLD = """void FileSystem_Shutdown()
+{
+	if (g_pFileSystemModule)
+	{
+		Sys_UnloadModule(g_pFileSystemModule);
+		g_pFileSystemModule = nullptr;
+	}
+}"""
+
+FS_IMPL_NEW = """void FileSystem_Shutdown()
+{
+	if (g_pFileSystemModule)
+	{
+		Sys_UnloadModule(g_pFileSystemModule);
+		g_pFileSystemModule = nullptr;
+	}
+}
+
+bool FileSystem_Exists(const char *filename)
+{
+	char fixed[260];
+	size_t i;
+
+	if (!filename || !filename[0])
+		return false;
+
+	if (g_pFileSystem)
+		return g_pFileSystem->FileExists(filename);
+
+	// Xash on iOS never ships filesystem_stdio. The CS bot phrase loader
+	// still asks FileExists while a listen server is starting, and a
+	// virtual call through the null pointer is signal 11 at 0x0.
+	// Compare the path with itself: the engine returns success only when
+	// that file is in the game search path.
+	for (i = 0; filename[i] && i + 1 < sizeof(fixed); ++i)
+		fixed[i] = (filename[i] == '\\\\') ? '/' : filename[i];
+	fixed[i] = '\\0';
+
+	if (!g_engfuncs.pfnCompareFileTime)
+		return false;
+
+	int cmp = 0;
+	return g_engfuncs.pfnCompareFileTime(fixed, fixed, &cmp) != 0;
+}"""
+
 STB_NULL_OLD = """	buf = stbtt_GetCodepointBitmap( &m_fontInfo, scale, scale, ch, &bm_width, &bm_rows, &bm_left, &bm_top );
 
 	// see where we should start rendering
@@ -361,6 +414,13 @@ def patch_tree(xash: Path, cs16: Path) -> None:
     replace_once(mainui / "BaseMenu.cpp", PICBUTTON_TEXT_OLD, PICBUTTON_TEXT_NEW, "text menu buttons when a CJK font is present")
     replace_once(mainui / "controls/PicButton.cpp", STATUS_OLD, STATUS_NEW, "menu status text through the vector font")
     replace_once(mainui / "controls/PicButton.cpp", SOLID_OLD, SOLID_NEW, "solid CJK menu labels")
+
+    regamedll = cs16 / "3rdparty/ReGameDLL_CS/regamedll"
+    replace_once(regamedll / "public/FileSystem.h", FS_DECL_OLD, FS_DECL_NEW, "engine file exists declaration")
+    replace_once(regamedll / "public/FileSystem.cpp", FS_IMPL_OLD, FS_IMPL_NEW, "engine file exists when filesystem_stdio is absent")
+    replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(model)", "FileSystem_Exists(model)", "hostage model exists")
+    replace_once(regamedll / "dlls/hostage/hostage.cpp", "g_pFileSystem->FileExists(actualFilename)", "FileSystem_Exists(actualFilename)", "hostage chatter exists")
+    replace_once(regamedll / "dlls/bot/cs_bot_chatter.cpp", "g_pFileSystem->FileExists(filePath)", "FileSystem_Exists(filePath)", "bot chatter exists")
 
     naming = [
         cs16 / "cmake/LibraryNaming.cmake",
