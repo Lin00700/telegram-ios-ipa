@@ -14,8 +14,8 @@ NAME_RE = re.compile("^[0-9A-Za-z_ \\u4e00-\\u9fff.·-]{1,30}$")
 
 
 def main() -> None:
-    bundle = os.environ.get("APP_BUNDLE_ID", "com.lin00700.callsmsblocker").strip()
-    name = os.environ.get("APP_DISPLAY_NAME", "来电短信过滤").strip()
+    bundle = (os.environ.get("APP_BUNDLE_ID") or "com.lin00700.callsmsblocker").strip()
+    name = (os.environ.get("APP_DISPLAY_NAME") or "来电短信过滤").strip()
     if not BUNDLE_RE.fullmatch(bundle):
         raise SystemExit("APP_BUNDLE_ID must be a reverse-DNS identifier")
     if not NAME_RE.fullmatch(name) or "//" in name or "=" in name:
