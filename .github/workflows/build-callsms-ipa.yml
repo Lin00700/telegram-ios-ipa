@@ -2,10 +2,12 @@ name: Build CallSMS unsigned IPA
 
 # Unsigned arm64 IPA for callsms-blocker/. Same macOS runner label as
 # build-unsigned-ipa.yml. This workflow does not build the Telegram client.
-# pull_request is what starts a run from this branch: the GitHub App token can
-# push, but workflow_dispatch returns 403 for that integration.
+# Push starts the build: workflow_dispatch is 403 for this GitHub App, while
+# push-triggered workflows in this repo do run.
 on:
-  pull_request:
+  push:
+    branches:
+      - cursor/callsms-blocker-f2db
     paths:
       - 'callsms-blocker/**'
       - '.github/workflows/build-callsms-ipa.yml'
