@@ -1,75 +1,69 @@
 name: Build unsigned IPA
 
 on:
+  push:
+    branches:
+      - cursor/ink-telegram-client-1028
   workflow_dispatch:
     inputs:
+      stage:
+        description: baseline 只编上游未签名 IPA；features 再加上水墨增强
+        required: true
+        default: baseline
+        type: choice
+        options:
+          - baseline
+          - features
       upstream_ref:
-        description: TelegramMessenger/Telegram-iOS ref (pinned for traceability; change deliberately when updating upstream)
+        description: TelegramMessenger/Telegram-iOS ref
         required: true
         default: fb0e62ba8a147f0821da6aa63c09da7d79a10111
         type: string
       app_display_name:
-        description: Non-official app display name
+        description: 主屏幕显示名称
         required: true
-        default: Unofficial Chat
+        default: 水墨
         type: string
       app_bundle_id:
-        description: Unique reverse-DNS bundle ID you control; update it before signing if needed
+        description: 自己的 bundle id，不要用官方的
         required: true
-        default: com.lin00700.unofficialchat
+        default: com.lin.telegram.ink
         type: string
 
 permissions:
   contents: read
 
+concurrency:
+  group: unsigned-ipa-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
-    outputs:
-      credentials_ready: ${{ steps.check.outputs.credentials_ready }}
     steps:
-      - name: Checkout packaging tests
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Run packaging and ML Kit vendor regression tests
+      - name: Run packaging and config tests
         run: python3 -m unittest discover -s tests -v
-
-      - id: check
-        name: Check Telegram API credentials are configured
-        env:
-          TG_API_ID: ${{ secrets.TG_API_ID }}
-          TG_API_HASH: ${{ secrets.TG_API_HASH }}
-        shell: bash
-        run: |
-          if [[ -n "$TG_API_ID" && -n "$TG_API_HASH" ]]; then
-            echo "credentials_ready=true" >> "$GITHUB_OUTPUT"
-            echo "Telegram API credentials are configured." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "credentials_ready=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "## Build not started"
-              echo "Add the repository Actions secrets \`TG_API_ID\` and \`TG_API_HASH\`, then rerun this workflow. No credential values were printed or stored in this repository."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
 
   build:
     needs: preflight
-    if: needs.preflight.outputs.credentials_ready == 'true'
     runs-on: xcode-27
     timeout-minutes: 360
     steps:
-      - name: Checkout private build scaffold
+      - name: Checkout build scaffold
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Checkout official Telegram iOS source and all submodules
+      - name: Checkout official Telegram iOS source and submodules
         uses: actions/checkout@v4
         with:
           repository: TelegramMessenger/Telegram-iOS
-          ref: ${{ inputs.upstream_ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.upstream_ref || 'fb0e62ba8a147f0821da6aa63c09da7d79a10111' }}
           path: upstream
           submodules: recursive
           fetch-depth: 1
@@ -90,50 +84,85 @@ jobs:
           xcodebuild -version
           echo "UPSTREAM_COMMIT=$(git -C upstream rev-parse HEAD)" >> "$GITHUB_ENV"
 
+      - name: Report missing Telegram API secrets
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$TG_API_ID" && -n "$TG_API_HASH" ]]; then
+            echo "Telegram API secrets TG_API_ID and TG_API_HASH are configured. Values are not printed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=缺少 Telegram API secrets::仓库 Actions secrets TG_API_ID 和 TG_API_HASH 未配置。本次仍会用占位符编译未签名 IPA，但客户端无法登录。请在 Settings → Secrets and variables → Actions 添加这两个 secret 后重新运行。不要把真实值写进代码。"
+            {
+              echo "## 缺少 TG_API_ID / TG_API_HASH"
+              echo "secrets 未配置。构建不会因此停止，注入的是编译占位符（不能登录）。"
+              echo "请在仓库 Settings → Secrets and variables → Actions 添加 \`TG_API_ID\` 和 \`TG_API_HASH\`，然后重新运行。"
+              echo "不要把真实 api_id 或 api_hash 提交到仓库。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Resolve build stage and identity
+        id: buildargs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "stage=${{ inputs.stage }}" >> "$GITHUB_OUTPUT"
+            echo "name=${{ inputs.app_display_name }}" >> "$GITHUB_OUTPUT"
+            echo "bundle=${{ inputs.app_bundle_id }}" >> "$GITHUB_OUTPUT"
+            echo "ref=${{ inputs.upstream_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            stage="baseline"
+            if [[ -f BUILD_STAGE ]]; then
+              stage="$(tr -d '[:space:]' < BUILD_STAGE)"
+            fi
+            echo "stage=$stage" >> "$GITHUB_OUTPUT"
+            echo "name=水墨" >> "$GITHUB_OUTPUT"
+            echo "bundle=com.lin.telegram.ink" >> "$GITHUB_OUTPUT"
+            echo "ref=fb0e62ba8a147f0821da6aa63c09da7d79a10111" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build and package unsigned IPA
         shell: bash
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
           TG_API_HASH: ${{ secrets.TG_API_HASH }}
-          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
-          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          APP_DISPLAY_NAME: ${{ steps.buildargs.outputs.name }}
+          APP_BUNDLE_ID: ${{ steps.buildargs.outputs.bundle }}
           BUILD_NUMBER: ${{ github.run_number }}
+          INK_STAGE: ${{ steps.buildargs.outputs.stage }}
           RUNNER_TEMP: ${{ runner.temp }}
-        run: |
-          set -euo pipefail
-          bash scripts/build_from_upstream.sh
+        run: bash scripts/build_from_upstream.sh
 
-      - name: Upload ML Kit dependency lock for diagnostics
-        if: always()
+      - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: mlkit-dependencies-${{ github.run_number }}
-          path: ${{ runner.temp }}/MLKit-Podfile.lock
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Upload user-signable IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: unofficial-ios-chat-unsigned-${{ github.run_number }}
+          name: shuimo-unsigned-${{ steps.buildargs.outputs.stage }}-${{ github.run_number }}
           path: |
-            artifacts/UnofficialChat-unsigned.ipa
+            artifacts/Shuimo-unsigned.ipa
             artifacts/unsigned-ipa-validation.json
-            artifacts/MLKit-Podfile.lock
+            artifacts/ipa-contents.json
+            artifacts/credentials-notice.txt
+            artifacts/INSTALL.md
+            artifacts/recommended.entitlements
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
       - name: Summarize build
         if: success()
         shell: bash
         env:
-          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
-          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
+          APP_BUNDLE_ID: ${{ steps.buildargs.outputs.bundle }}
+          APP_DISPLAY_NAME: ${{ steps.buildargs.outputs.name }}
+          INK_STAGE: ${{ steps.buildargs.outputs.stage }}
         run: |
           {
-            echo "## Unsigned IPA ready"
-            echo "- Upstream commit: \`$UPSTREAM_COMMIT\`"
-            echo "- App: \`$APP_DISPLAY_NAME\` (\`$APP_BUNDLE_ID\`)"
-            echo "- Built for arm64 with provisioning profiles and code signing disabled."
-            echo "- No Apple signing certificate was imported; sign the artifact with your own identity before installing."
+            echo "## 未签名 IPA"
+            echo "- 阶段: \`$INK_STAGE\`"
+            echo "- 上游: \`$UPSTREAM_COMMIT\`"
+            echo "- App: $APP_DISPLAY_NAME (\`$APP_BUNDLE_ID\`)"
+            echo "- 扩展已从 IPA 去掉，主程序 entitlement 不含 App Group 和 Push。"
+            echo "- 用自己的证书（全能签）重签后再安装。说明见 artifact 里的 INSTALL.md。"
           } >> "$GITHUB_STEP_SUMMARY"

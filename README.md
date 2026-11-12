@@ -1,42 +1,45 @@
-# Unofficial iOS Chat — build scaffold
+# 水墨 — 自用 Telegram iOS 客户端
 
-This repository is a scaffold for an **unofficial** iOS messaging client based on the official [TelegramMessenger/Telegram-iOS](https://github.com/TelegramMessenger/Telegram-iOS) source. It does not contain a copy of Telegram's source tree; the Actions workflow fetches upstream at a recorded ref and includes its submodules.
+这是官方 [TelegramMessenger/Telegram-iOS](https://github.com/TelegramMessenger/Telegram-iOS) 的构建脚手架，不是官方客户端。仓库里不存放 Telegram 源码；GitHub Actions 在 macOS runner 上拉取固定提交和子模块，编出**未签名 IPA**。用自己的证书（例如全能签）重签后再安装。
 
-The app must not be presented as the official Telegram app and must not use Telegram's standard paper-plane logo. The build scaffold replaces the default app icon with an original warm-ivory / brick-red chat mark and uses the display name `Unofficial Chat` by default. See [`docs/VISUAL_STYLE.md`](docs/VISUAL_STYLE.md).
+默认 bundle id 是 `com.lin.telegram.ink`，主屏幕名称是「水墨」。不要改回 `ph.telegra.Telegraph`。
 
-## Current state
+## 凭据
 
-Applied to the pinned upstream checkout at build time (each patch is exact-match guarded and fails the build if upstream drifts):
+在仓库 **Settings → Secrets and variables → Actions** 添加：
 
-- **Visual theme** — warm ivory / brick-red palette for navigation, lists, chat list and bubbles, plus a bundled ink-wash default wallpaper (`scripts/apply_custom_client_ui.py`). This is a palette and wallpaper change, not yet a full ink-wash redesign of every screen.
-- **Global photo/GIF wallpaper** — picked from Photos, stored only in Application Support, aspect-fit (no stretching), dimmed in dark mode, GIFs sampled to at most 16 frames (`scripts/apply_global_wallpaper.py`).
-- **Purchase-entry hiding** — Premium, Business, Stars, gifts, subscription prompts, wallet rows and StoreKit contexts are hidden locally. Server-side entitlements are not touched and nothing is unlocked.
-- **Per-chat local translation** — off by default, enabled per conversation, only for messages received after enabling; original text is kept and Simplified Chinese is shown below it. Uses on-device ML Kit plus bundled OpenCC `t2s`; no chat text is uploaded and Telegram Premium is not required. Minimum iOS is 15.5.
-- **Per-chat AI auto-reply** — separate from translation. Multiple named provider profiles can be assigned per conversation; every conversation starts OFF and needs its own explicit consent. API keys are entered at runtime and kept in the device Keychain (`ThisDeviceOnly`). Endpoints must be HTTPS. Replies go through Telegram's normal send path and respect send permission. Bots, broadcast channels and secret chats are not auto-replied to.
+- `TG_API_ID`
+- `TG_API_HASH`
 
-Verification: `python3 -m unittest discover -s tests -v` runs in the workflow preflight (packaging, ML Kit vendoring, and `tests/test_overlay_contracts.py` for the invariants above). Recent Actions runs have produced an unsigned IPA (e.g. run #17), but the visual changes and the translation/AI flows have **not** been verified on a real device yet.
+到 [my.telegram.org](https://my.telegram.org) 申请你自己的 API 凭据。不要把真实值写进代码或提交。
 
-Known gaps: no full ink-wash restyle of every screen; AI auto-reply never fires in broadcast channels (they can be assigned but are read-only for non-admins); no end-to-end test of the "no network request without consent" invariant on a device.
+secrets 缺失时，workflow 会打出明确错误，并用编译占位符继续编 IPA，用来验证能否编过。占位符**不能登录**。说明写在产物 `credentials-notice.txt` 里。
 
-## Build an unsigned device IPA
+## 怎么构建
 
-The workflow is manually triggered from **Actions → Build unsigned IPA → Run workflow**. It checks out the official source recursively, selects the Xcode version declared by upstream `versions.json`, creates the configuration file only in the runner's temporary directory, and builds `release_arm64` with provisioning profiles and code signing disabled. The packaging script then strips/validates remaining signatures or profiles and uploads an `.ipa` artifact. No Apple signing certificate or provisioning profile is imported or stored. The unsigned build runs on the `xcode-27` runner and takes roughly an hour. Sign the resulting IPA with your own identity before installing.
+Actions → **Build unsigned IPA** → Run workflow。
 
-Before a real build, add these GitHub Actions **repository secrets** (not repository files):
+- `baseline`：只编上游源码，加上重签兼容（去掉扩展、App Group、Push，主程序可落到自己的沙盒）。
+- `features`：在 baseline 上加水墨增强。这个分支的 `BUILD_STAGE` 文件决定 push 触发时用哪一阶段。
 
-- `TG_API_ID` — the app's own Telegram API ID.
-- `TG_API_HASH` — the matching API hash; treat it as sensitive.
+## 水墨增强
 
-Telegram's official instructions say to obtain these at [my.telegram.org → API development tools](https://core.telegram.org/api/obtaining_api_id). The API hash is compiled into the client binary as required by the upstream build, so a GitHub Secret protects it from source-control/log exposure but cannot make it secret from someone who receives and inspects the app.
+设置里的「水墨增强」，聊天右上角也能进。默认是宣纸、墨色、朱砂。其它开关默认关闭，长按翻译默认打开。
 
-The workflow inputs `app_display_name` and `app_bundle_id` set the non-official app identity. Use a unique reverse-DNS bundle ID that you control before signing.
+- 全局背景和当前聊天背景，静态图或 GIF，从相册自选，按比例显示。
+- AI：OpenAI、DeepSeek、Gemini、Claude，或自定义 OpenAI 兼容地址。Key 在钥匙串。
+- 自动回复：总开关，按对话打开，可对全部新消息、关键词或被 @ 触发，带间隔和次数限制。群、频道、私聊都会走原来的发送权限，发不出去就不会发。
+- 长按消息翻译，以及按对话自动翻译新消息。译文附在原文下面。
+- 总结当前对话里已经加载的最近文字（打开聊天时通常包含未读窗口）。
+- 防撤回：别人撤回或编辑时，本地留下原文并标注。自己删除消息仍然会删掉。
+- 隐身：不发已读回执，不上报在线，不发送正在输入。
+- 代理入口打开 Telegram 自带的 SOCKS5 / MTProxy 页面。
+- 多账号上限从 3 改成 10。服务器对普通账号可能还有自己的限制。
 
-## AI assistant
+Runner 是 `xcode-27`，Xcode 版本按上游 `versions.json` 选择。一次构建大约要一小时。产物是 `Shuimo-unsigned.ipa`，旁边有 `INSTALL.md`（扩展清单和建议 entitlements）。基线产物已经编出；功能包在 runner 空出来之后再编。
 
-The design supports multiple named assistant/provider profiles, assigning one or more profiles to selected chats, and managing each chat's automation. **Selecting a chat does not enable automation.** Every chat/thread starts OFF and requires its own explicit consent before any message text is sent to a provider. There is no global "enable all chats" switch. Group controls are permission-aware; secret chats are excluded. Provider credentials are entered at runtime and stored in the iOS Keychain, never in source code or GitHub. See [`docs/AI_AUTOREPLY.md`](docs/AI_AUTOREPLY.md).
+## 上游
 
-## Source/license and upstream notes
+默认提交：`fb0e62ba8a147f0821da6aa63c09da7d79a10111`。见 [UPSTREAM.md](UPSTREAM.md)。
 
-The upstream Telegram iOS README asks each developer to use their own API ID, avoid presenting the app as official or using Telegram's standard logo, follow Telegram's security guidance, and publish their code to comply with the applicable GNU GPL licenses. This repository is public, which helps with source availability, but it only holds the overlay: the patched upstream source is produced on the runner. If you distribute a built IPA, also make the corresponding patched source available and review the GPL terms yourself.
-
-The default workflow ref is pinned to upstream commit `fb0e62ba8a147f0821da6aa63c09da7d79a10111` for traceability. See [`UPSTREAM.md`](UPSTREAM.md).
+官方客户端以 GPL 发布。分发 IPA 时需要同时提供对应的修改版源码，并遵守上游的安全要求：使用自己的 API ID，不要冒充官方，不要使用纸飞机标志。本仓库的图标是另一套图形。

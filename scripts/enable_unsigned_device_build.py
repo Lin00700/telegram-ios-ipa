@@ -29,7 +29,7 @@ FLAG_FORWARD = """    if getattr(arguments, 'disableProvisioningProfiles', False
         bazel_command_line.set_disable_provisioning_profiles()
 """
 OLD_ARGS = "            combined_arguments += ['--//Telegram:disableProvisioningProfiles']"
-NEW_ARGS = "            combined_arguments += ['--//Telegram:disableProvisioningProfiles', '--features=disable_legacy_signing']"
+NEW_ARGS = "            combined_arguments += ['--//Telegram:disableProvisioningProfiles', '--//Telegram:disableExtensions', '--features=disable_legacy_signing']"
 OLD_PROFILE_BRANCH = re.compile(
     r'    if platform_prerequisites\.platform\.is_device:\n'
     r'        processor_partials\.append\(\n'
