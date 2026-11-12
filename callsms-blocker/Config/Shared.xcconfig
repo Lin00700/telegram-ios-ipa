@@ -1,0 +1,5 @@
+APP_BUNDLE_ID = com.lin00700.callsmsblocker
+APP_GROUP_ID = group.com.lin00700.callsmsblocker
+APP_DISPLAY_NAME = 来电短信过滤
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1

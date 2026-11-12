@@ -1,0 +1,14 @@
+{
+  "upstream": "https://github.com/ls0f/phone",
+  "upstream_path": "phone/phone.dat",
+  "upstream_license": "MIT, as stated in the upstream README",
+  "upstream_version_header": "2312",
+  "upstream_sha256": "cb17a69eafa68d7706cfcc68d47cdf165ea916e9d5c476b4dd5f06cf74aed23d",
+  "records": 499527,
+  "provinces": 31,
+  "area_codes": 321,
+  "ranges": 133416,
+  "virtual_prefixes": 42596,
+  "derived_bytes": 1072584,
+  "normalization": "Upstream area code 00479 (锡林郭勒) is stored as 0479."
+}
