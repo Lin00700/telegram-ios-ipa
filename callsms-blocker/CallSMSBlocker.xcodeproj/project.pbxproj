@@ -1,0 +1,1365 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		9B98C007C2F129004619F222 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = AppIdentity.swift;
+			sourceTree = "<group>";
+		};
+		D90B6372FEFE49CDD5C2D864 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CRC32.swift;
+			sourceTree = "<group>";
+		};
+		717E46B7E83C64168DE49DA8 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = FilterRules.swift;
+			sourceTree = "<group>";
+		};
+		F3CFA13B33C6A4AC980E889A /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = PhoneNumber.swift;
+			sourceTree = "<group>";
+		};
+		07E3FB54AB6AFD2F3BF081AF /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = GeoDatabase.swift;
+			sourceTree = "<group>";
+		};
+		991B0DAC342044F753E1EAC7 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = KeywordPresets.swift;
+			sourceTree = "<group>";
+		};
+		F543244C322EE15BE6A8A7E3 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SMSClassifier.swift;
+			sourceTree = "<group>";
+		};
+		1A2F622DB91286AE56BD843B /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CallListBuilder.swift;
+			sourceTree = "<group>";
+		};
+		DC1B18080CB8A8F6F86AFC3E /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = RuleFile.swift;
+			sourceTree = "<group>";
+		};
+		F56048EF5BD525D718333163 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CallSMSBlockerApp.swift;
+			sourceTree = "<group>";
+		};
+		D145B3C1B890C2DC83005E07 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = RuleStore.swift;
+			sourceTree = "<group>";
+		};
+		F0B7724D4A1B31D0EF702760 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SettingsOpener.swift;
+			sourceTree = "<group>";
+		};
+		76CA704FB4B89D8195FA209D /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = RootView.swift;
+			sourceTree = "<group>";
+		};
+		599738364B09872EC42E1CF1 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Editors.swift;
+			sourceTree = "<group>";
+		};
+		9E612619FD8E371AAA3C6557 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SMSFilterView.swift;
+			sourceTree = "<group>";
+		};
+		09D2BAC8911689E832D9821C /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CallBlockView.swift;
+			sourceTree = "<group>";
+		};
+		CB26B606994AF47E628EC430 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SimulatorView.swift;
+			sourceTree = "<group>";
+		};
+		E9636AC33FD7CBAC7C659912 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = OnboardingView.swift;
+			sourceTree = "<group>";
+		};
+		F2C155B9C53B96BC9E9A4577 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MessageFilterExtension.swift;
+			sourceTree = "<group>";
+		};
+		62845F2A513B00C75AE2F927 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CallDirectoryHandler.swift;
+			sourceTree = "<group>";
+		};
+		41AAFF02EA97D9183144FBF8 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = LogicTests.swift;
+			sourceTree = "<group>";
+		};
+		40698FAA7756CC33DF792C51 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Info.plist;
+			sourceTree = "<group>";
+		};
+		75F996A1A34610111B3C92CC /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Info.plist;
+			sourceTree = "<group>";
+		};
+		8A884B6375C5EFBFB10BC486 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Info.plist;
+			sourceTree = "<group>";
+		};
+		245074227BD325C665779838 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Info.plist;
+			sourceTree = "<group>";
+		};
+		BE63484FE056FDE3C2C1C88C /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = CallSMSBlocker.entitlements;
+			sourceTree = "<group>";
+		};
+		A40AF937CF77FB1DA0932B79 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = MessageFilter.entitlements;
+			sourceTree = "<group>";
+		};
+		2F2410B53E9EBDA5395AF82C /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = CallDirectory.entitlements;
+			sourceTree = "<group>";
+		};
+		11E7434E01F43CA25AB7B62C /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.assetcatalog;
+			path = Assets.xcassets;
+			sourceTree = "<group>";
+		};
+		50FF37F404953CF022AFD769 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			path = prefix_ranges.dat;
+			sourceTree = "<group>";
+		};
+		FBBD1398405E010768F0BB0A /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = virtual_prefixes.txt;
+			sourceTree = "<group>";
+		};
+		44093C7567099FAAFC9E0CEB /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.json;
+			path = SOURCE.json;
+			sourceTree = "<group>";
+		};
+		1C61031693AA5165BBB46B86 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xcconfig;
+			path = Shared.xcconfig;
+			sourceTree = "<group>";
+		};
+		4AAEF302BFCCE431167BC2D8 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = CallSMSBlocker.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B44AB33FD1DD4EF0C74248E0 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.app-extension;
+			includeInIndex = 0;
+			path = MessageFilter.appex;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A27CD71BB09ADFE3E8CAE59A /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.app-extension;
+			includeInIndex = 0;
+			path = CallDirectory.appex;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1B5087EDB977C67E79F3F816 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = CallSMSLogicTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CB0A5082E330B55504F5E68D /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = SwiftUI.framework;
+			path = System/Library/Frameworks/SwiftUI.framework;
+			sourceTree = SDKROOT;
+		};
+		A456769FFA359B6103A92DB2 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = UIKit.framework;
+			path = System/Library/Frameworks/UIKit.framework;
+			sourceTree = SDKROOT;
+		};
+		AD65DCDC18F9D59AFAE23605 /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = CallKit.framework;
+			path = System/Library/Frameworks/CallKit.framework;
+			sourceTree = SDKROOT;
+		};
+		6E26F54818A93AB07BD0754F /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = IdentityLookup.framework;
+			path = System/Library/Frameworks/IdentityLookup.framework;
+			sourceTree = SDKROOT;
+		};
+		DE7DF616234B2545814A48FD /* PBXFileReference */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = XCTest.framework;
+			path = System/Library/Frameworks/XCTest.framework;
+			sourceTree = SDKROOT;
+		};
+		6D4BC9F4A160B333585978FB /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F56048EF5BD525D718333163;
+		};
+		07555385E52C598CBA617BA3 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = D145B3C1B890C2DC83005E07;
+		};
+		4F2697FC8B58BAB749549CED /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F0B7724D4A1B31D0EF702760;
+		};
+		D3AAE825D0849EC56BB2C979 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 76CA704FB4B89D8195FA209D;
+		};
+		BAB951D1847DEB8748022E3C /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 599738364B09872EC42E1CF1;
+		};
+		B82FF77C88D5719EE05A9F74 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 9E612619FD8E371AAA3C6557;
+		};
+		B9712504D1FE7AA8B465E1E8 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 09D2BAC8911689E832D9821C;
+		};
+		948751FC81D2A3CA4EEC692C /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = CB26B606994AF47E628EC430;
+		};
+		776F9E0921CD8CC84BE2BA46 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = E9636AC33FD7CBAC7C659912;
+		};
+		E6E6F6811FC7EB11716CA0CF /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 9B98C007C2F129004619F222;
+		};
+		4AF31CC1E6DE51D92C2119A0 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = D90B6372FEFE49CDD5C2D864;
+		};
+		B55B02D1DB1C520566790C2F /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 717E46B7E83C64168DE49DA8;
+		};
+		A9A2930E35F7464A55CC6BB2 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F3CFA13B33C6A4AC980E889A;
+		};
+		FFD26B66EC54284F6CE062DD /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 07E3FB54AB6AFD2F3BF081AF;
+		};
+		EE00576460FE7D3592C3A9B2 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 991B0DAC342044F753E1EAC7;
+		};
+		FE6D9074B5868AFD830C20F1 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F543244C322EE15BE6A8A7E3;
+		};
+		2A367714D9F555AB86E313FE /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 1A2F622DB91286AE56BD843B;
+		};
+		FCA41C0E6127155C8C4F332D /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = DC1B18080CB8A8F6F86AFC3E;
+		};
+		AE8CFFB616FB1F49CA7E2FE0 /* PBXSourcesBuildPhase */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D4BC9F4A160B333585978FB,
+				07555385E52C598CBA617BA3,
+				4F2697FC8B58BAB749549CED,
+				D3AAE825D0849EC56BB2C979,
+				BAB951D1847DEB8748022E3C,
+				B82FF77C88D5719EE05A9F74,
+				B9712504D1FE7AA8B465E1E8,
+				948751FC81D2A3CA4EEC692C,
+				776F9E0921CD8CC84BE2BA46,
+				E6E6F6811FC7EB11716CA0CF,
+				4AF31CC1E6DE51D92C2119A0,
+				B55B02D1DB1C520566790C2F,
+				A9A2930E35F7464A55CC6BB2,
+				FFD26B66EC54284F6CE062DD,
+				EE00576460FE7D3592C3A9B2,
+				FE6D9074B5868AFD830C20F1,
+				2A367714D9F555AB86E313FE,
+				FCA41C0E6127155C8C4F332D,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36C39730B3064E4271C5F7A0 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F2C155B9C53B96BC9E9A4577;
+		};
+		54DD0E0D0907EE6B524325D5 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 9B98C007C2F129004619F222;
+		};
+		6DCBFE88C9D41831D210F439 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = D90B6372FEFE49CDD5C2D864;
+		};
+		6F0B07F0FEAE32D33D084257 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 717E46B7E83C64168DE49DA8;
+		};
+		87755AD3578185DA988B447C /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F3CFA13B33C6A4AC980E889A;
+		};
+		EAC60DF3B85579BA58EEB2C2 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 07E3FB54AB6AFD2F3BF081AF;
+		};
+		AD96415A9E4339254CF97B06 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 991B0DAC342044F753E1EAC7;
+		};
+		E5C39FDA6931413CB464AAF2 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F543244C322EE15BE6A8A7E3;
+		};
+		866EB97CC01922C7E41946D7 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 1A2F622DB91286AE56BD843B;
+		};
+		A096FA8B7B89BEF59C2CDDDE /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = DC1B18080CB8A8F6F86AFC3E;
+		};
+		49E1E14D021164BCB656BF27 /* PBXSourcesBuildPhase */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36C39730B3064E4271C5F7A0,
+				54DD0E0D0907EE6B524325D5,
+				6DCBFE88C9D41831D210F439,
+				6F0B07F0FEAE32D33D084257,
+				87755AD3578185DA988B447C,
+				EAC60DF3B85579BA58EEB2C2,
+				AD96415A9E4339254CF97B06,
+				E5C39FDA6931413CB464AAF2,
+				866EB97CC01922C7E41946D7,
+				A096FA8B7B89BEF59C2CDDDE,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0EFE632A733EDB23246BEE13 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 62845F2A513B00C75AE2F927;
+		};
+		C7AA7E2CA6698E17CB2482BF /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 9B98C007C2F129004619F222;
+		};
+		B60FFFC7E4D9817FAF2D7E50 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = D90B6372FEFE49CDD5C2D864;
+		};
+		FF3BF0891CB566F3FB5842AF /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 717E46B7E83C64168DE49DA8;
+		};
+		1D21187D462CECEC08558FA5 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F3CFA13B33C6A4AC980E889A;
+		};
+		6B56B84DD904802B98554BB7 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 07E3FB54AB6AFD2F3BF081AF;
+		};
+		91C448C8F6FA05B32243D9C8 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 991B0DAC342044F753E1EAC7;
+		};
+		E0F2079832A25210A5FCF25D /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F543244C322EE15BE6A8A7E3;
+		};
+		491632EBA3D52334B93B67C5 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 1A2F622DB91286AE56BD843B;
+		};
+		02F0E04EC790E9C9D3D2E324 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = DC1B18080CB8A8F6F86AFC3E;
+		};
+		03254456567D368B684061AD /* PBXSourcesBuildPhase */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0EFE632A733EDB23246BEE13,
+				C7AA7E2CA6698E17CB2482BF,
+				B60FFFC7E4D9817FAF2D7E50,
+				FF3BF0891CB566F3FB5842AF,
+				1D21187D462CECEC08558FA5,
+				6B56B84DD904802B98554BB7,
+				91C448C8F6FA05B32243D9C8,
+				E0F2079832A25210A5FCF25D,
+				491632EBA3D52334B93B67C5,
+				02F0E04EC790E9C9D3D2E324,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E6DBE5D031AB7EF711E8543 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 41AAFF02EA97D9183144FBF8;
+		};
+		2885D8AC14D482C0CA7BD983 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 9B98C007C2F129004619F222;
+		};
+		71398C25FEE0A04F28E41539 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = D90B6372FEFE49CDD5C2D864;
+		};
+		8D66106DB8C62915CA0AF1BD /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 717E46B7E83C64168DE49DA8;
+		};
+		5E58902844B4D8871044392F /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F3CFA13B33C6A4AC980E889A;
+		};
+		B8C119826D3781EFD29CDE2E /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 07E3FB54AB6AFD2F3BF081AF;
+		};
+		C8E8140797FC189E77692D54 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 991B0DAC342044F753E1EAC7;
+		};
+		352D45EF11595EDC3275A8F1 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = F543244C322EE15BE6A8A7E3;
+		};
+		0251C1B072A5872D2081D68E /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 1A2F622DB91286AE56BD843B;
+		};
+		BBFD579EB2F11CAD27EDF17F /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = DC1B18080CB8A8F6F86AFC3E;
+		};
+		FB89EEE5662602BC66CF0B2D /* PBXSourcesBuildPhase */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E6DBE5D031AB7EF711E8543,
+				2885D8AC14D482C0CA7BD983,
+				71398C25FEE0A04F28E41539,
+				8D66106DB8C62915CA0AF1BD,
+				5E58902844B4D8871044392F,
+				B8C119826D3781EFD29CDE2E,
+				C8E8140797FC189E77692D54,
+				352D45EF11595EDC3275A8F1,
+				0251C1B072A5872D2081D68E,
+				BBFD579EB2F11CAD27EDF17F,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F536CC0757DE21A7B3CDA2B /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 11E7434E01F43CA25AB7B62C;
+		};
+		6ECF5EC9892AAA12549B3805 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 50FF37F404953CF022AFD769;
+		};
+		5BB87DCF97419A7840AAF18C /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = FBBD1398405E010768F0BB0A;
+		};
+		798BD3C83C4D597BD81DFD95 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 44093C7567099FAAFC9E0CEB;
+		};
+		00A1D2921914EF5B717C015B /* PBXResourcesBuildPhase */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F536CC0757DE21A7B3CDA2B,
+				6ECF5EC9892AAA12549B3805,
+				5BB87DCF97419A7840AAF18C,
+				798BD3C83C4D597BD81DFD95,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE2126DDAC0E51F2FFD4AC50 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 50FF37F404953CF022AFD769;
+		};
+		DE071F89E74C5A43EAE28FBF /* PBXResourcesBuildPhase */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE2126DDAC0E51F2FFD4AC50,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF596C31D4CEBE6458FF7A3F /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 50FF37F404953CF022AFD769;
+		};
+		149FEB63709436A1047FC9E1 /* PBXResourcesBuildPhase */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF596C31D4CEBE6458FF7A3F,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		57DA3F65686E427FDBD3779F /* PBXResourcesBuildPhase */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41CA56353D630613FEFE208C /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = CB0A5082E330B55504F5E68D;
+		};
+		2CEDFF39D101DC4E4F548F1B /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = A456769FFA359B6103A92DB2;
+		};
+		A761EF05D9159E05FD0EA073 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = AD65DCDC18F9D59AFAE23605;
+		};
+		7E98DF078A58740FDF7DF98B /* PBXFrameworksBuildPhase */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41CA56353D630613FEFE208C,
+				2CEDFF39D101DC4E4F548F1B,
+				A761EF05D9159E05FD0EA073,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1DC9BEA3B253F798E910B464 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = 6E26F54818A93AB07BD0754F;
+		};
+		B861BF1ED6526D2248690F67 /* PBXFrameworksBuildPhase */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1DC9BEA3B253F798E910B464,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		04C7EB9294E9EB371DD162CE /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = AD65DCDC18F9D59AFAE23605;
+		};
+		7CCCE04C05887CA7EF116FD2 /* PBXFrameworksBuildPhase */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04C7EB9294E9EB371DD162CE,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		119D3849F400F476F8A202AE /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = DE7DF616234B2545814A48FD;
+		};
+		447264754CEE85493D536A2E /* PBXFrameworksBuildPhase */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				119D3849F400F476F8A202AE,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8CE1F3A1D36FABA340BF9610 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = B44AB33FD1DD4EF0C74248E0;
+			settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); };
+		};
+		FF12D713125B093FFDBE1212 /* PBXBuildFile */ = {
+			isa = PBXBuildFile;
+			fileRef = A27CD71BB09ADFE3E8CAE59A;
+			settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); };
+		};
+		802DDFC57F7E2E1AB332423F /* PBXCopyFilesBuildPhase */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8CE1F3A1D36FABA340BF9610,
+				FF12D713125B093FFDBE1212,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD6A5280322DA0452A1C11F4 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				F56048EF5BD525D718333163,
+				D145B3C1B890C2DC83005E07,
+				F0B7724D4A1B31D0EF702760,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		09E4A1F3AF2F230448EF9540 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				76CA704FB4B89D8195FA209D,
+				599738364B09872EC42E1CF1,
+				9E612619FD8E371AAA3C6557,
+				09D2BAC8911689E832D9821C,
+				CB26B606994AF47E628EC430,
+				E9636AC33FD7CBAC7C659912,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		270E78852FBEEC202F32DCA1 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				FD6A5280322DA0452A1C11F4,
+				09E4A1F3AF2F230448EF9540,
+				11E7434E01F43CA25AB7B62C,
+				40698FAA7756CC33DF792C51,
+				BE63484FE056FDE3C2C1C88C,
+			);
+			path = CallSMSBlocker;
+			sourceTree = "<group>";
+		};
+		B3F161994B43C09CA1BF3A74 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				F2C155B9C53B96BC9E9A4577,
+				75F996A1A34610111B3C92CC,
+				A40AF937CF77FB1DA0932B79,
+			);
+			path = MessageFilter;
+			sourceTree = "<group>";
+		};
+		542F9094C656CF97FFFA04DE /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				62845F2A513B00C75AE2F927,
+				8A884B6375C5EFBFB10BC486,
+				2F2410B53E9EBDA5395AF82C,
+			);
+			path = CallDirectory;
+			sourceTree = "<group>";
+		};
+		C54BB5B45C7CB712662B7E32 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				9B98C007C2F129004619F222,
+				D90B6372FEFE49CDD5C2D864,
+				717E46B7E83C64168DE49DA8,
+				F3CFA13B33C6A4AC980E889A,
+				07E3FB54AB6AFD2F3BF081AF,
+				991B0DAC342044F753E1EAC7,
+				F543244C322EE15BE6A8A7E3,
+				1A2F622DB91286AE56BD843B,
+				DC1B18080CB8A8F6F86AFC3E,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		27B3D5503411EC8A9A1129EB /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				50FF37F404953CF022AFD769,
+				FBBD1398405E010768F0BB0A,
+				44093C7567099FAAFC9E0CEB,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		8248357A399ACC6895741FD8 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				41AAFF02EA97D9183144FBF8,
+				245074227BD325C665779838,
+			);
+			path = LogicTests;
+			sourceTree = "<group>";
+		};
+		4F03EB41E85AE1D1AD5E1C14 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				1C61031693AA5165BBB46B86,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		862C00B18F52A57B1353D4A0 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				4AAEF302BFCCE431167BC2D8,
+				B44AB33FD1DD4EF0C74248E0,
+				A27CD71BB09ADFE3E8CAE59A,
+				1B5087EDB977C67E79F3F816,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		54BD92B6B581727DD44360B2 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				CB0A5082E330B55504F5E68D,
+				A456769FFA359B6103A92DB2,
+				AD65DCDC18F9D59AFAE23605,
+				6E26F54818A93AB07BD0754F,
+				DE7DF616234B2545814A48FD,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0A2D64552D38D861D88C7D39 /* PBXGroup */ = {
+			isa = PBXGroup;
+			children = (
+				270E78852FBEEC202F32DCA1,
+				B3F161994B43C09CA1BF3A74,
+				542F9094C656CF97FFFA04DE,
+				C54BB5B45C7CB712662B7E32,
+				27B3D5503411EC8A9A1129EB,
+				8248357A399ACC6895741FD8,
+				4F03EB41E85AE1D1AD5E1C14,
+				54BD92B6B581727DD44360B2,
+				862C00B18F52A57B1353D4A0,
+			);
+			name = CallSMSBlocker;
+			sourceTree = "<group>";
+		};
+		900B0011372877B57CE32921 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = CallSMSBlocker/CallSMSBlocker.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CallSMSBlocker/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_NAME = CallSMSBlocker;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		384688DA8A1BA4EB0C073FC8 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = CallSMSBlocker/CallSMSBlocker.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CallSMSBlocker/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_NAME = CallSMSBlocker;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		87D2E6D769FE60A27CEEA900 /* XCConfigurationList */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				900B0011372877B57CE32921,
+				384688DA8A1BA4EB0C073FC8,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		87887A071905153C25818E30 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = MessageFilter/MessageFilter.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MessageFilter/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).MessageFilter";
+				PRODUCT_NAME = MessageFilter;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		3D78E3969864DFCD4C37F365 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = MessageFilter/MessageFilter.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MessageFilter/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).MessageFilter";
+				PRODUCT_NAME = MessageFilter;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		EEEF67A3E9BABA39FA3DCFA4 /* XCConfigurationList */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				87887A071905153C25818E30,
+				3D78E3969864DFCD4C37F365,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C58A3E8585F496C1752E3F2 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = CallDirectory/CallDirectory.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CallDirectory/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).CallDirectory";
+				PRODUCT_NAME = CallDirectory;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		6F369DA075CCD95C3C22ADC4 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = CallDirectory/CallDirectory.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CallDirectory/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).CallDirectory";
+				PRODUCT_NAME = CallDirectory;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		C78875AF94A1CF6FA7823906 /* XCConfigurationList */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C58A3E8585F496C1752E3F2,
+				6F369DA075CCD95C3C22ADC4,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		61243B489929A5380E8A5FC9 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LogicTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).logic-tests";
+				PRODUCT_NAME = CallSMSLogicTests;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "";
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		E4812DB4B4C0826C3AE0DC1F /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LogicTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).logic-tests";
+				PRODUCT_NAME = CallSMSLogicTests;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "";
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		C94C2BA65F27B75469A3C273 /* XCConfigurationList */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				61243B489929A5380E8A5FC9,
+				E4812DB4B4C0826C3AE0DC1F,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		156370C4CC62318345017B78 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		DEFD5F69B1846D7B68705980 /* XCBuildConfiguration */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C61031693AA5165BBB46B86;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				ONLY_ACTIVE_ARCH = NO;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		77EFF2618CD99EB5FDAB7CA1 /* XCConfigurationList */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				156370C4CC62318345017B78,
+				DEFD5F69B1846D7B68705980,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		427AC2663C0071DF82BAAE71 /* PBXNativeTarget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EEEF67A3E9BABA39FA3DCFA4;
+			buildPhases = (
+				49E1E14D021164BCB656BF27,
+				B861BF1ED6526D2248690F67,
+				DE071F89E74C5A43EAE28FBF,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MessageFilter";
+			productName = MessageFilter;
+			productReference = B44AB33FD1DD4EF0C74248E0;
+			productType = "com.apple.product-type.app-extension";
+		};
+		31F96BDBB57B9E18E0B5A555 /* PBXNativeTarget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C78875AF94A1CF6FA7823906;
+			buildPhases = (
+				03254456567D368B684061AD,
+				7CCCE04C05887CA7EF116FD2,
+				57DA3F65686E427FDBD3779F,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "CallDirectory";
+			productName = CallDirectory;
+			productReference = A27CD71BB09ADFE3E8CAE59A;
+			productType = "com.apple.product-type.app-extension";
+		};
+		33B18CEC864FE87EA16D938B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8FB27E9F51B817E543A4A39D;
+			proxyType = 1;
+			remoteGlobalIDString = 427AC2663C0071DF82BAAE71;
+			remoteInfo = MessageFilter;
+		};
+		D5D7142BA4E092F57301D08B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 427AC2663C0071DF82BAAE71;
+			targetProxy = 33B18CEC864FE87EA16D938B;
+		};
+		F75AE75405A0E65DD5D0CB43 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8FB27E9F51B817E543A4A39D;
+			proxyType = 1;
+			remoteGlobalIDString = 31F96BDBB57B9E18E0B5A555;
+			remoteInfo = CallDirectory;
+		};
+		32081CBB89801C7077CEAA21 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31F96BDBB57B9E18E0B5A555;
+			targetProxy = F75AE75405A0E65DD5D0CB43;
+		};
+		1A281FA7AF7BF28078A14897 /* PBXNativeTarget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 87D2E6D769FE60A27CEEA900;
+			buildPhases = (
+				AE8CFFB616FB1F49CA7E2FE0,
+				7E98DF078A58740FDF7DF98B,
+				00A1D2921914EF5B717C015B,
+				802DDFC57F7E2E1AB332423F,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D5D7142BA4E092F57301D08B,
+				32081CBB89801C7077CEAA21,
+			);
+			name = "CallSMSBlocker";
+			productName = CallSMSBlocker;
+			productReference = 4AAEF302BFCCE431167BC2D8;
+			productType = "com.apple.product-type.application";
+		};
+		7C924CFC3EA8AFD1604A5B23 /* PBXNativeTarget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C94C2BA65F27B75469A3C273;
+			buildPhases = (
+				FB89EEE5662602BC66CF0B2D,
+				447264754CEE85493D536A2E,
+				149FEB63709436A1047FC9E1,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "CallSMSLogicTests";
+			productName = CallSMSLogicTests;
+			productReference = 1B5087EDB977C67E79F3F816;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8FB27E9F51B817E543A4A39D /* PBXProject */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					1A281FA7AF7BF28078A14897 = {CreatedOnToolsVersion = 16.0; };
+					427AC2663C0071DF82BAAE71 = {CreatedOnToolsVersion = 16.0; };
+					31F96BDBB57B9E18E0B5A555 = {CreatedOnToolsVersion = 16.0; };
+					7C924CFC3EA8AFD1604A5B23 = {CreatedOnToolsVersion = 16.0; };
+				};
+			};
+			buildConfigurationList = 77EFF2618CD99EB5FDAB7CA1;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				zh-Hans,
+				Base,
+			);
+			mainGroup = 0A2D64552D38D861D88C7D39;
+			productRefGroup = 862C00B18F52A57B1353D4A0;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1A281FA7AF7BF28078A14897,
+				427AC2663C0071DF82BAAE71,
+				31F96BDBB57B9E18E0B5A555,
+				7C924CFC3EA8AFD1604A5B23,
+			);
+		};
+	};
+	rootObject = 8FB27E9F51B817E543A4A39D;
+}
