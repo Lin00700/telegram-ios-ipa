@@ -1,0 +1,78 @@
+name: Build CallSMS unsigned IPA
+
+# Unsigned arm64 IPA for callsms-blocker/. Same macOS runner label as
+# build-unsigned-ipa.yml. This workflow does not build the Telegram client.
+on:
+  workflow_dispatch:
+    inputs:
+      app_display_name:
+        description: Home-screen name
+        required: true
+        default: 来电短信过滤
+        type: string
+      app_bundle_id:
+        description: Reverse-DNS bundle ID. The App Group becomes group.<id>. Extensions use <id>.MessageFilter and <id>.CallDirectory.
+        required: true
+        default: com.lin00700.callsmsblocker
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: callsms-ipa-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check rule contracts and the prefix table
+        run: python3 -m unittest discover -s callsms-blocker/tests -v
+
+  build:
+    needs: preflight
+    runs-on: xcode-27
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build unsigned IPA
+        env:
+          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
+        run: bash callsms-blocker/scripts/build-unsigned-ipa.sh
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: callsms-blocker-unsigned-${{ github.run_number }}
+          path: |
+            callsms-blocker/dist/CallSMSBlocker-unsigned.ipa
+            callsms-blocker/dist/CallSMSBlocker-unsigned.ipa.sha256
+            callsms-blocker/dist/INSTALL.md
+            callsms-blocker/dist/build-validation.json
+            callsms-blocker/dist/entitlements/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize
+        if: success()
+        run: |
+          {
+            echo "## Unsigned CallSMS IPA"
+            echo "The artifact contains \`CallSMSBlocker-unsigned.ipa\`, \`INSTALL.md\`, a \`.sha256\`, validation JSON, and the App Group entitlements."
+            echo "No Apple signing certificate was imported. Re-sign with 全能签 before installing."
+            echo "Bundle: \`$APP_BUNDLE_ID\` (\`$APP_DISPLAY_NAME\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+          APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
